@@ -36,6 +36,7 @@ import {
   showTooltip,
 } from './utils';
 import AutoGenerateButton from './auto-generate';
+import SpeedAddButton from './speed-add';
 
 const NODE_WIDTH = 75;
 const NODE_HEIGHT = 25;
@@ -1631,6 +1632,12 @@ export default function Subgraph() {
                   Steer
                 </Button>
               )}
+              <SpeedAddButton 
+                selectedGraph={selectedGraph} 
+                visState={visState} 
+                updateVisStateField={updateVisStateField}
+                getOverrideClerpForNode={getOverrideClerpForNode}
+                />
               <AutoGenerateButton 
                 selectedGraph={selectedGraph} 
                 visState={visState} 

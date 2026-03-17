@@ -30,8 +30,8 @@ async def explain_default(request: ExplainDefaultPostRequest):
         client = OpenRouter(api_key=request.openrouter_key, model=request.model)
         explainer = DefaultExplainer(client, tokenizer=None, threshold=0.6)
         result: ExplainerResult = await explainer.__call__(feature_record)  # type: ignore
-
-        return ExplainDefaultPost200Response(explanation=result.explanation)
+        print(result)
+        return ExplainDefaultPost200Response(explanation=result.explanation, explanations = result.explanation_list)
 
     except Exception as e:
         traceback.print_exc()

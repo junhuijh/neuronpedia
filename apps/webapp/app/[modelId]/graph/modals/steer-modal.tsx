@@ -877,6 +877,7 @@ export default function SteerModal() {
                             setQueuedAddFeature({
                               neuron: n,
                               description: explanation?.description || 'No Label Found',
+                              explanations: [],
                               typeName:
                                 explanation?.typeName ||
                                 (PREFERRED_EXPLANATION_TYPES_NAMES.length > 0

@@ -636,6 +636,7 @@ model Explanation {
   embedding Unsupported("vector(256)")?
 
   description       String
+  explanations      String []
   authorId          String
   author            User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
   triggeredByUserId String?

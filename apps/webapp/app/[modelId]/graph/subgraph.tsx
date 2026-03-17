@@ -20,6 +20,7 @@ import {
   Save,
   Share2,
   TrashIcon,
+  Wand2,
   ZoomInIcon,
   ZoomOutIcon,
 } from 'lucide-react';
@@ -34,6 +35,7 @@ import {
   MODELS_TO_CALCULATE_REPLACEMENT_SCORES,
   showTooltip,
 } from './utils';
+import AutoGenerateButton from './auto-generate';
 
 const NODE_WIDTH = 75;
 const NODE_HEIGHT = 25;
@@ -1629,6 +1631,11 @@ export default function Subgraph() {
                   Steer
                 </Button>
               )}
+              <AutoGenerateButton 
+                selectedGraph={selectedGraph} 
+                visState={visState} 
+                updateVisStateField={updateVisStateField}
+                />
             </div>
 
             <div className="absolute left-3 top-3 hidden flex-row items-center justify-center gap-x-1.5 sm:flex">

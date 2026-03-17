@@ -191,7 +191,8 @@ export const POST = withAuthedUser(async (request: RequestAuthedUser) => {
           modelId: body.modelId,
           layer: body.layer,
           index: body.index.toString(),
-          description: explainResult,
+          description: explainResult.explanation,
+          explanations: explainResult.explanations,
           authorId: user.id,
           triggeredByUserId: user.id,
           typeName: explanationType.name,
@@ -199,7 +200,7 @@ export const POST = withAuthedUser(async (request: RequestAuthedUser) => {
         },
       });
 
-      const embeddingStr = await getExplanationEmbeddingSql(explainResult);
+      const embeddingStr = await getExplanationEmbeddingSql(explainResult.explanation);
       await prisma.$queryRaw`
       UPDATE "Explanation"
       SET embedding = ${embeddingStr}::vector

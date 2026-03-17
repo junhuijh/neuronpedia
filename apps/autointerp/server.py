@@ -8,6 +8,7 @@ from fastapi import Body
 import torch
 import uvicorn
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from neuronpedia_autointerp_client.models.explain_default_post_request import (
@@ -25,6 +26,11 @@ from neuronpedia_autointerp.routes.explain.default import explain_default
 from neuronpedia_autointerp.routes.score.embedding import generate_score_embedding
 from neuronpedia_autointerp.routes.score.fuzz_detection import (
     generate_score_fuzz_detection,
+)
+
+from autogenerate import (
+    AutoGenerateRequest,
+    generate_auto_generate,
 )
 
 VERSION_PREFIX_PATH = "/v1"
@@ -101,10 +107,22 @@ async def score_fuzz_detection_endpoint(request: ScoreFuzzDetectionPostRequest):
     print("Score Fuzz Detection Called")
     return await generate_score_fuzz_detection(request)
 
+@router.post("/auto_generate")
+async def auto_generate_endpoint(request: AutoGenerateRequest):
+    print("Auto Generate Called")
+    return await generate_auto_generate(request)
 
 app = FastAPI()
 app.include_router(router)
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")  # type: ignore[deprecated]
 async def startup_event():

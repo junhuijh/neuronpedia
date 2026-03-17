@@ -98,7 +98,7 @@ export const EvalTypeScalarFieldEnumSchema = z.enum(['name','displayName','descr
 
 export const NeuronScalarFieldEnumSchema = z.enum(['modelId','layer','index','sourceSetName','creatorId','createdAt','maxActApprox','hasVector','vector','vectorLabel','vectorDefaultSteerStrength','hookName','topkCosSimIndices','topkCosSimValues','neuron_alignment_indices','neuron_alignment_values','neuron_alignment_l1','correlated_neurons_indices','correlated_neurons_pearson','correlated_neurons_l1','correlated_features_indices','correlated_features_pearson','correlated_features_l1','neg_str','neg_values','pos_str','pos_values','frac_nonzero','freq_hist_data_bar_heights','freq_hist_data_bar_values','logits_hist_data_bar_heights','logits_hist_data_bar_values','decoder_weights_dist','umap_cluster','umap_log_feature_sparsity','umap_x','umap_y']);
 
-export const ExplanationScalarFieldEnumSchema = z.enum(['id','modelId','layer','index','description','authorId','triggeredByUserId','notes','scoreV1','scoreV2','umap_x','umap_y','umap_cluster','umap_log_feature_sparsity','typeName','explanationModelName','createdAt','updatedAt']);
+export const ExplanationScalarFieldEnumSchema = z.enum(['id','modelId','layer','index','description','explanations','authorId','triggeredByUserId','notes','scoreV1','scoreV2','umap_x','umap_y','umap_cluster','umap_log_feature_sparsity','typeName','explanationModelName','createdAt','updatedAt']);
 
 export const ExplanationModelSettingsScalarFieldEnumSchema = z.enum(['id','temperature','maxTokens','topP','frequencyPenalty']);
 
@@ -1920,6 +1920,7 @@ export const ExplanationSchema = z.object({
   layer: z.string(),
   index: z.string(),
   description: z.string(),
+  explanations: z.string().array(),
   authorId: z.string(),
   triggeredByUserId: z.string().nullable(),
   notes: z.string().nullable(),

@@ -17,6 +17,8 @@ export const generateExplanationEleutherActsTop20 = async (
       model: explanationModel.openRouterModelId,
     },
   });
-
-  return result.explanation;
+  return {
+    explanation: result.explanation,
+    explanations: result.explanations ?? [],
+  };
 };

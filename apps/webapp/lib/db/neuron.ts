@@ -179,6 +179,7 @@ export const getNeurons = async (
           description: true,
           explanationModelName: true,
           typeName: true,
+          explanations: true,
         },
       },
       activations: {

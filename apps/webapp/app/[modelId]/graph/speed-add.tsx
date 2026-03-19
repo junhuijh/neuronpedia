@@ -1,10 +1,10 @@
 import { Button } from "@/components/shadcn/button";
 import { CLTGraph, CLTGraphNode, CltVisState } from "./graph-types";
 import { Plus, Minus, Zap } from 'lucide-react';
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shadcn/dialog';
 import { Input } from "@/components/shadcn/input";
-import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 
 export default function SpeedAddButton({
     selectedGraph,

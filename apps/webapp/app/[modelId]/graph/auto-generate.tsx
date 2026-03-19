@@ -1,10 +1,267 @@
 import { Button } from "@/components/shadcn/button";
 import { CLTGraph, CLTGraphNode, CltVisState } from "./graph-types";
-import { Wand2 } from "lucide-react";
+import { Wand2, HelpCircle } from "lucide-react";
 import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shadcn/dialog';
 import { LoadingSpinner } from "@/components/svg/loading-spinner";
+import { useForm } from "react-hook-form";
+import * as Tooltip from '@radix-ui/react-tooltip';
 
+
+type AutoGenerateGraphForm = {
+  output_node_id:string,
+  inputs_scanned_per_node:number,
+  max_votes_per_node:number,
+  min_similarity_vote:number,
+  min_similarity_group:number,
+}
+
+
+function AutoGenerateModal({
+  defaultValues,
+  outputNodes,
+  autoGeneratePopUpOpen,
+  setAutoGeneratePopUpOpen,
+  autoGenerating,
+  handleAutoGenerateGraph,
+  handleCancel,
+}:{
+  defaultValues:AutoGenerateGraphForm;
+  outputNodes:CLTGraphNode[];
+  autoGeneratePopUpOpen: boolean;
+  setAutoGeneratePopUpOpen: (open: boolean) => void;
+  autoGenerating: boolean;
+  handleAutoGenerateGraph: (formValues:AutoGenerateGraphForm) => Promise<void>;
+  handleCancel: () => void;
+}){
+  const form = useForm<AutoGenerateGraphForm>({
+    defaultValues:defaultValues
+  })
+  return(
+      <Dialog open={autoGeneratePopUpOpen} onOpenChange={(open) => {
+        if (!autoGenerating) setAutoGeneratePopUpOpen(open);
+      }}>
+          <DialogContent className="max-w-sm bg-white text-slate-700">
+              <DialogHeader>
+                  <DialogTitle className="text-xl font-bold">
+                      Auto Generate Graph
+                  </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={form.handleSubmit(handleAutoGenerateGraph)}>
+                <div className="flex flex-col w-full gap-y-3">
+                  <div className="flex flex-col gap-1">
+                    <label>Output Node</label>
+                    <select 
+                      {...form.register("output_node_id")}
+                    >
+                        {outputNodes.map(node => (
+                            <option 
+                              key={node.nodeId} 
+                              value={node.nodeId}
+                              disabled={autoGenerating}
+                            >
+                              {node.clerp.replace(/"/g, '').trim()}
+                            </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="flex w-full gap-1">
+                      Inputs Scanned Per Node: {form.watch("inputs_scanned_per_node")}
+                      <Tooltip.Provider delayDuration={300} skipDelayDuration={0}>
+                          <Tooltip.Root>
+                            <Tooltip.Trigger asChild>
+                              <div className="flex items-center">
+                                <HelpCircle className="h-3 w-3" />
+                              </div>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content className="rounded bg-slate-500 px-3 py-2 text-xs text-white z-[999]" sideOffset={5}>
+                                Number of top input nodes to explore per node during BFS traversal.
+                                <Tooltip.Arrow className="fill-slate-500" />
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip.Root>
+                        </Tooltip.Provider>
+                    </label>
+                    <input 
+                        type="range" 
+                        min={1} 
+                        max={10} 
+                        step={1}
+                        disabled={autoGenerating}
+                        {...form.register("inputs_scanned_per_node", { valueAsNumber: true })}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                      <label className="flex w-full gap-1">
+                        Max Votes Per Node: {form.watch("max_votes_per_node")}
+                        <Tooltip.Provider delayDuration={300} skipDelayDuration={0}>
+                          <Tooltip.Root>
+                            <Tooltip.Trigger asChild>
+                              <div className="flex items-center">
+                                <HelpCircle className="h-3 w-3" />
+                              </div>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content className="rounded bg-slate-500 px-3 py-2 text-xs text-white z-[999]" sideOffset={5}>
+                                A node can cast at most 1 vote per child's candidate name, up to a maximum of X votes total.
+                                <Tooltip.Arrow className="fill-slate-500" />
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip.Root>
+                        </Tooltip.Provider>
+                      </label>
+                      <input 
+                          type="range" 
+                          min={1} 
+                          max={10} 
+                          step={1}
+                          disabled={autoGenerating}
+                          {...form.register("max_votes_per_node", { valueAsNumber: true })}
+                      />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                      <label className="flex w-full gap-1">
+                        Min Vote Similarity: {form.watch("min_similarity_vote").toFixed(2)}
+                        <Tooltip.Provider delayDuration={300} skipDelayDuration={0}>
+                          <Tooltip.Root>
+                            <Tooltip.Trigger asChild>
+                              <div className="flex items-center">
+                                <HelpCircle className="h-3 w-3" />
+                              </div>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content className="rounded bg-slate-500 px-3 py-2 text-xs text-white z-[999]" sideOffset={5}>
+                                Minimum similarity between a node's finalised name and a candidate name of its input node to count as a vote.
+                                <Tooltip.Arrow className="fill-slate-500" />
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip.Root>
+                        </Tooltip.Provider>
+                      </label>
+                      <input 
+                          type="range" 
+                          min={0} 
+                          max={1} 
+                          step={0.05}
+                          disabled={autoGenerating}
+                          {...form.register("min_similarity_vote", { valueAsNumber: true })}
+                      />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                      <label className="flex w-full gap-1">
+                        Min Group Similarity: {form.watch("min_similarity_group").toFixed(2)}
+                        <Tooltip.Provider delayDuration={300} skipDelayDuration={0}>
+                          <Tooltip.Root>
+                            <Tooltip.Trigger asChild>
+                              <div className="flex items-center">
+                                <HelpCircle className="h-3 w-3" />
+                              </div>
+                            </Tooltip.Trigger>
+                            <Tooltip.Portal>
+                              <Tooltip.Content className="rounded bg-slate-500 px-3 py-2 text-xs text-white z-[999]" sideOffset={5}>
+                                Minimum similarity between finalised name of nodes to be considered related enough to form a group.
+                                <Tooltip.Arrow className="fill-slate-500" />
+                              </Tooltip.Content>
+                            </Tooltip.Portal>
+                          </Tooltip.Root>
+                        </Tooltip.Provider>
+                      </label>
+                      <input 
+                          type="range" 
+                          min={0} 
+                          max={1} 
+                          step={0.05}
+                          disabled={autoGenerating}
+                          {...form.register("min_similarity_group", { valueAsNumber: true })}
+                      />
+                  </div>
+                  <div className="flex flex-col w-full gap-y-3 items-center">
+                    {!autoGenerating && (
+                        <div>This may take a while. Proceed?</div>
+                    )}
+                    {autoGenerating && (
+                        <div className="flex flex-row items-center justify-center gap-x-2">
+                            <LoadingSpinner size={16} className="text-sky-700" />
+                            <div>Auto Generating...</div>
+                        </div>
+                    )}
+                  </div>
+                  <div className="flex w-full p-1 gap-x-1">
+                      {!autoGenerating && (
+                        <Button
+                          type="submit"
+                          className="flex-1 transition-all duration-300"
+                        >
+                          Proceed
+                        </Button>
+                      )}
+                      <Button
+                          variant="destructive"
+                          className="flex-1 transition-all duration-300"
+                          onClick={handleCancel}
+                          >
+                          Cancel
+                      </Button>
+                  </div>
+              </div>
+              </form>
+          </DialogContent>
+      </Dialog>
+  )
+}
+
+type GraphNode = {
+  node_id: string;
+  feature_id:string|undefined;
+  feature_type:string;
+  description:string;
+  explanations:string[] | null;
+  inDegree:number;
+  child_ids:string[];
+  votes:Record<string, number>;
+  votes_casted:number;
+  final_name:string
+};
+
+function ConvertToGraphNode(node:CLTGraphNode): GraphNode | undefined {
+  if (!node) return
+  let explanations = null
+  let description = "";
+  let votes:Record<string, number> = {}
+  if(node.featureDetailNP && node.featureDetailNP.explanations && node.featureDetailNP.explanations[0] && node.featureDetailNP.explanations[0].description){
+    description = node.featureDetailNP.explanations[0].description;
+  }
+  if(node.featureDetailNP && node.featureDetailNP.explanations && node.featureDetailNP.explanations[0] && node.featureDetailNP.explanations[0].explanations){
+    explanations = node.featureDetailNP.explanations[0].explanations;
+    node.featureDetailNP.explanations[0].explanations.forEach(e => votes[e]=0);
+  }else if (description!==""){
+    votes[description] = 0;
+  }
+  let final_name = ""
+  if(node.feature_type == "embedding"){
+    final_name = node.clerp.trim().replace(/"/g, '').split(/\s+/).pop() || node.clerp;
+  }
+  if(node.feature_type == "logit"){
+    final_name = node.clerp.replace(/"/g, '').trim().split(' ').at(-2)!;
+  }
+  return {
+    node_id:node.node_id,
+    feature_id:node.featureId,
+    feature_type:node.feature_type,
+    description:description,
+    explanations:explanations,
+    inDegree:0,
+    child_ids:[],
+    votes:votes,
+    votes_casted:0,
+    final_name:final_name
+  }
+}
 
 export default function AutoGenerateButton({
     selectedGraph,
@@ -15,63 +272,27 @@ export default function AutoGenerateButton({
     visState: CltVisState;
     updateVisStateField: <K extends keyof CltVisState>(key: K, value: CltVisState[K]) => void;
 }) {
+    if (!selectedGraph) return
     const [autoGeneratePopUpOpen, setAutoGeneratePopUpOpen] = useState<boolean>(false)
     const [autoGenerating, setAutoGenerating] = useState<boolean>(false)
+    const outputNodes = selectedGraph.nodes
+      .filter(n => n.feature_type === 'logit')
+      .sort((a, b) => (b.token_prob ?? 0) - (a.token_prob ?? 0));
+    const defaultValues = {
+      output_node_id: outputNodes[0].nodeId || "",
+      inputs_scanned_per_node: 3,
+      max_votes_per_node: 2,
+      min_similarity_vote: 0.6,
+      min_similarity_group: 0.8
+    }
     const abortControllerRef = useRef<AbortController | null>(null);
 
-    async function handleAutoGenerateGraph(){
+    async function handleAutoGenerateGraph(formValues:AutoGenerateGraphForm){
+        setAutoGenerating(true)
         abortControllerRef.current = new AbortController();
-        type GraphNode = {
-          node_id: string;
-          feature_id:string|undefined;
-          feature_type:string;
-          description:string;
-          explanations:string[] | null;
-          inDegree:number;
-          child_ids:string[];
-          votes:Record<string, number>;
-          votes_casted:number;
-          final_name:string
-        };
-    
-        function ConvertToGraphNode(node:CLTGraphNode): GraphNode | undefined {
-          if (!node) return
-          let explanations = null
-          let description = "";
-          let votes:Record<string, number> = {}
-          if(node.featureDetailNP && node.featureDetailNP.explanations && node.featureDetailNP.explanations[0] && node.featureDetailNP.explanations[0].description){
-            description = node.featureDetailNP.explanations[0].description;
-          }
-          if(node.featureDetailNP && node.featureDetailNP.explanations && node.featureDetailNP.explanations[0] && node.featureDetailNP.explanations[0].explanations){
-            explanations = node.featureDetailNP.explanations[0].explanations;
-            node.featureDetailNP.explanations[0].explanations.forEach(e => votes[e]=0);
-          }else if (description!==""){
-            votes[description] = 0;
-          }
-          let final_name = ""
-          if(node.feature_type == "embedding"){
-            final_name = node.clerp.trim().replace(/"/g, '').split(/\s+/).pop() || node.clerp;
-          }
-          if(node.feature_type == "logit"){
-            final_name = node.clerp.replace(/"/g, '').trim().split(' ').at(-2)!;
-          }
-          return {
-            node_id:node.node_id,
-            feature_id:node.featureId,
-            feature_type:node.feature_type,
-            description:description,
-            explanations:explanations,
-            inDegree:0,
-            child_ids:[],
-            votes:votes,
-            votes_casted:0,
-            final_name:final_name
-          }
-        }
-    
-        // Top K input nodes
-        const K = 3;
-    
+        // Top input nodes scanned per node
+        const inputs_scanned_per_node = formValues.inputs_scanned_per_node;
+        const output_node_id = formValues.output_node_id
         if (!selectedGraph) return;
         // New list of nodes
         const newPinnedIds: string[] = [];
@@ -82,8 +303,7 @@ export default function AutoGenerateButton({
         const visited = new Set<string>();
         // Find most probable output node
         const outputNode = selectedGraph.nodes
-          .filter(n => n.feature_type === 'logit')
-          .sort((a, b) => (b.token_prob ?? 0) - (a.token_prob ?? 0))[0];
+          .filter(node => node.nodeId === output_node_id)[0];
         if (!outputNode || !outputNode.node_id) return;
         // Add to queue
         const outputNodeConverted = ConvertToGraphNode(outputNode)
@@ -115,7 +335,7 @@ export default function AutoGenerateButton({
               n.feature_type !== 'mlp reconstruction error' &&
               (n.feature_type === "embedding" || n.feature_type === "logit" || n.description !="" || n.explanations!=null)
             )
-            .slice(0, K);
+            .slice(0, inputs_scanned_per_node);
           for (const node of outputNodes) {
             // set as visited
             visited.add(node.node_id);
@@ -143,7 +363,10 @@ export default function AutoGenerateButton({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            newPinned:Object.fromEntries(newPinned)
+            newPinned:Object.fromEntries(newPinned),
+            max_votes_per_node:formValues.max_votes_per_node,
+            min_similarity_vote:formValues.min_similarity_vote,
+            min_similarity_group:formValues.min_similarity_group
           }),
           signal: abortControllerRef.current.signal
         });
@@ -185,59 +408,20 @@ export default function AutoGenerateButton({
         setAutoGeneratePopUpOpen(false);
     };
 
-    function AutoGenerateModal(){
-        return(
-            <Dialog open={autoGeneratePopUpOpen} onOpenChange={(open) => {
-                if (!autoGenerating) setAutoGeneratePopUpOpen(open);
-            }}>
-                <DialogContent className="max-w-sm bg-white text-slate-700">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold">
-                            Auto Generate Graph
-                        </DialogTitle>
-                    </DialogHeader>
-                    <DialogDescription className="text-center">
-                        <div className="flex flex-col w-full gap-y-3">
-                            {!autoGenerating && (
-                                <div>This may take a while. Proceed?</div>
-                            )}
-                            {autoGenerating && (
-                                <div className="flex flex-row items-center justify-center gap-x-2">
-                                    <LoadingSpinner size={16} className="text-sky-700" />
-                                    <div>Auto Generating...</div>
-                                </div>
-                            )}
-                            <div className="flex w-full p-1 gap-x-1">
-                                {!autoGenerating && (
-                                    <Button
-                                        className="flex-1 transition-all duration-300"
-                                        onClick={() => {
-                                            setAutoGenerating(true);
-                                            handleAutoGenerateGraph();
-                                        }}
-                                    >
-                                        Proceed
-                                    </Button>
-                                )}
-                                <Button
-                                    variant="destructive"
-                                    className="flex-1 transition-all duration-300"
-                                    onClick={handleCancel}
-                                >
-                                    Cancel
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogDescription>
-                </DialogContent>
-            </Dialog>
-        )
-    }
+    
 
 
     return (
         <>
-            <AutoGenerateModal/>
+            <AutoGenerateModal
+              defaultValues={defaultValues}
+              outputNodes={outputNodes}
+              autoGeneratePopUpOpen={autoGeneratePopUpOpen}
+              setAutoGeneratePopUpOpen={setAutoGeneratePopUpOpen}
+              autoGenerating={autoGenerating}
+              handleAutoGenerateGraph={handleAutoGenerateGraph}
+              handleCancel={handleCancel}
+            />
             <Button
                 variant="outline"
                 size="sm"

@@ -24,6 +24,9 @@ class GraphNode(BaseModel):
 
 class AutoGenerateRequest(BaseModel):
     newPinned: dict[str, GraphNode]
+    max_votes_per_node: int
+    min_similarity_vote: float
+    min_similarity_group: float
 
 class AutoGenerateResponse(BaseModel):
     final_pinned:list[GraphNode]
@@ -174,8 +177,9 @@ class AutoGenerateResponse(BaseModel):
 async def generate_auto_generate(request: AutoGenerateRequest):
     try:
         total = len(request.newPinned.values())
-        top_k = 2
-        min_similarity_vote = 0.65
+        max_votes_per_node = request.max_votes_per_node
+        min_similarity_vote = request.min_similarity_vote
+        min_similarity_group = request.min_similarity_group
         to_prune = []
         
         visited = set()
@@ -244,7 +248,7 @@ async def generate_auto_generate(request: AutoGenerateRequest):
                 if child_node.explanations:
                     candidates_embeddings = model.encode(child_node.explanations)
                     scores = cosine_similarity(voter_embedding, candidates_embeddings).mean(axis=1)
-                    top_k_indices = np.argsort(scores)[::-1][:top_k]
+                    top_k_indices = np.argsort(scores)[::-1][:max_votes_per_node]
                     votes = [child_node.explanations[i] for i in top_k_indices if scores[i] >= min_similarity_vote]
                     for vote in votes:
                         child_node.votes[vote] += 1
@@ -272,7 +276,6 @@ async def generate_auto_generate(request: AutoGenerateRequest):
             request.newPinned.pop(node_id)
 
         # Now group them 
-        min_similarity_group = 0.8
         between_nodes = [n for n in request.newPinned.values() if n.feature_type not in ("embedding", "logit")]
         node_names_list = [n.final_name for n in between_nodes]
 

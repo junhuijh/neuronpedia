@@ -113,6 +113,13 @@ export default function SpeedAddButton({
                             {fields.map((field, i) => (
                                 <div key={field.id} className="flex gap-2">
                                     <Input 
+                                        autoComplete="off"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'g') {
+                                                e.stopPropagation();
+                                            }
+                                        }}
+                                        onKeyUp={(e) => e.stopPropagation()}
                                         {...form.register(`queries.${i}.value`)} 
                                         placeholder="e.g. capital" 
                                     />

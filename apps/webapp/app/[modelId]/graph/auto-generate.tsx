@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { LoadingSpinner } from "@/components/svg/loading-spinner";
 import { useForm } from "react-hook-form";
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { useGraphModalContext } from "@/components/provider/graph-modal-provider";
 
 
 type AutoGenerateGraphForm = {
@@ -16,20 +17,19 @@ type AutoGenerateGraphForm = {
   min_similarity_group:number,
 }
 
-
 function AutoGenerateModal({
   defaultValues,
   outputNodes,
-  autoGeneratePopUpOpen,
-  setAutoGeneratePopUpOpen,
   autoGenerating,
+  isAutoGenerateModalOpen,
+  setIsAutoGenerateModalOpen,
   handleAutoGenerateGraph,
   handleCancel,
 }:{
   defaultValues:AutoGenerateGraphForm;
   outputNodes:CLTGraphNode[];
-  autoGeneratePopUpOpen: boolean;
-  setAutoGeneratePopUpOpen: (open: boolean) => void;
+  isAutoGenerateModalOpen: boolean;
+  setIsAutoGenerateModalOpen: (open: boolean) => void;
   autoGenerating: boolean;
   handleAutoGenerateGraph: (formValues:AutoGenerateGraphForm) => Promise<void>;
   handleCancel: () => void;
@@ -38,9 +38,12 @@ function AutoGenerateModal({
     defaultValues:defaultValues
   })
   return(
-      <Dialog open={autoGeneratePopUpOpen} onOpenChange={(open) => {
-        if (!autoGenerating) setAutoGeneratePopUpOpen(open);
-      }}>
+      <Dialog 
+        open={isAutoGenerateModalOpen} 
+        onOpenChange={(open) => {
+          if (!autoGenerating) setIsAutoGenerateModalOpen(open);
+        }}
+      >
           <DialogContent className="max-w-sm bg-white text-slate-700">
               <DialogHeader>
                   <DialogTitle className="text-xl font-bold">
@@ -273,7 +276,7 @@ export default function AutoGenerateButton({
     updateVisStateField: <K extends keyof CltVisState>(key: K, value: CltVisState[K]) => void;
 }) {
     if (!selectedGraph) return
-    const [autoGeneratePopUpOpen, setAutoGeneratePopUpOpen] = useState<boolean>(false)
+    const { isAutoGenerateModalOpen, setIsAutoGenerateModalOpen } = useGraphModalContext();
     const [autoGenerating, setAutoGenerating] = useState<boolean>(false)
     const outputNodes = selectedGraph.nodes
       .filter(n => n.feature_type === 'logit')
@@ -398,14 +401,14 @@ export default function AutoGenerateButton({
           });
         }
         setAutoGenerating(false);
-        setAutoGeneratePopUpOpen(false);
+        setIsAutoGenerateModalOpen(false);
         abortControllerRef.current = null;
     }
 
     const handleCancel = () => {
         abortControllerRef.current?.abort('User cancelled');
         setAutoGenerating(false);
-        setAutoGeneratePopUpOpen(false);
+        setIsAutoGenerateModalOpen(false);
     };
 
     
@@ -416,8 +419,8 @@ export default function AutoGenerateButton({
             <AutoGenerateModal
               defaultValues={defaultValues}
               outputNodes={outputNodes}
-              autoGeneratePopUpOpen={autoGeneratePopUpOpen}
-              setAutoGeneratePopUpOpen={setAutoGeneratePopUpOpen}
+              isAutoGenerateModalOpen={isAutoGenerateModalOpen}
+              setIsAutoGenerateModalOpen={setIsAutoGenerateModalOpen}
               autoGenerating={autoGenerating}
               handleAutoGenerateGraph={handleAutoGenerateGraph}
               handleCancel={handleCancel}
@@ -426,9 +429,9 @@ export default function AutoGenerateButton({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                    setAutoGeneratePopUpOpen(true)
+                    setIsAutoGenerateModalOpen(true)
                 }}
-                className="hidden h-11 w-[86px] flex-col items-center justify-center gap-y-[4px] whitespace-nowrap border border-sky-600 bg-sky-100 px-0 text-[9.5px] font-semibold leading-none text-sky-700 shadow transition-all hover:bg-sky-200 hover:text-sky-700 sm:flex"
+                className="auto-generate-button hidden h-11 w-[86px] flex-col items-center justify-center gap-y-[4px] whitespace-nowrap border border-sky-600 bg-sky-100 px-0 text-[9.5px] font-semibold leading-none text-sky-700 shadow transition-all hover:bg-sky-200 hover:text-sky-700 sm:flex"
                 aria-label="Auto Generate"
             >
                 <>

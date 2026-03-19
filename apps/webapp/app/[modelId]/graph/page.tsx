@@ -20,6 +20,7 @@ import {
 } from './utils';
 import GraphWrapper from './wrapper';
 
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -131,6 +132,7 @@ export default async function Page({
     subgraph?: string;
     generate?: string;
     sourceSet?: string;
+    tutorial?: string
   };
 }) {
   const { modelId } = params;
@@ -312,7 +314,9 @@ export default async function Page({
 
   const generateParam = searchParams.generate as string | undefined;
   const showGenerateModal = generateParam === 'true';
-
+  const showTutorial = modelId === "gemma-2-2b" 
+                    && searchParams.slug === "gemma-fact-dallas-austin"
+  
   return (
     <GraphStateProvider>
       <GraphProvider
@@ -335,7 +339,7 @@ export default async function Page({
             Use a larger screen to view this page. UI is simplified for mobile.
           </div>
         )}
-        <GraphWrapper hasSlug={!!searchParams.slug} showGenerateModal={showGenerateModal} />
+        <GraphWrapper hasSlug={!!searchParams.slug} showGenerateModal={showGenerateModal} showTutorial={showTutorial}/>
       </GraphProvider>
     </GraphStateProvider>
   );

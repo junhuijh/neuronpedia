@@ -143,7 +143,7 @@ export default function GraphFeatureDetail() {
 
     return (
       <div
-        className={`max-h-full w-full flex-col overflow-y-scroll sm:flex ${
+        className={`feature-details max-h-full w-full flex-col overflow-y-scroll sm:flex ${
           clickedIdRef.current ? 'absolute left-0 top-0 z-10 flex sm:relative' : ''
         }`}
       >

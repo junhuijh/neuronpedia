@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shadcn/dialog';
 import { Input } from "@/components/shadcn/input";
 import { useForm, useFieldArray } from 'react-hook-form';
+import { useGraphModalContext } from "@/components/provider/graph-modal-provider";
 
 export default function SpeedAddButton({
     selectedGraph,
@@ -17,7 +18,7 @@ export default function SpeedAddButton({
     updateVisStateField: <K extends keyof CltVisState>(key: K, value: CltVisState[K]) => void;
     getOverrideClerpForNode: (node: CLTGraphNode) => string | undefined
 }) {
-    const [speedAddPopUpOpen, setSpeedAddPopUpOpen] = useState<boolean>(false)
+    const { isSpeedAddModalOpen, setIsSpeedAddModalOpen } = useGraphModalContext();
     type SpeedAddForm = {
         queries:{value:string}[]
     }
@@ -83,7 +84,7 @@ export default function SpeedAddButton({
             supernodes,
         });
         form.reset()
-        setSpeedAddPopUpOpen(false)
+        setIsSpeedAddModalOpen(false)
     }
 
     const handleAppend = () => {
@@ -94,7 +95,7 @@ export default function SpeedAddButton({
 
     function SpeedAddModal(){
         return(
-            <Dialog open={speedAddPopUpOpen} onOpenChange={(value)=>setSpeedAddPopUpOpen(value)}>
+            <Dialog open={isSpeedAddModalOpen} onOpenChange={(value)=>setIsSpeedAddModalOpen(value)}>
                 <DialogContent className="max-w-sm bg-white text-slate-700">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold">
@@ -165,9 +166,9 @@ export default function SpeedAddButton({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                    setSpeedAddPopUpOpen(true)
+                    setIsSpeedAddModalOpen(true)
                 }}
-                className="hidden h-11 w-[86px] flex-col items-center justify-center gap-y-[4px] whitespace-nowrap border border-sky-600 bg-sky-100 px-0 text-[9.5px] font-semibold leading-none text-sky-700 shadow transition-all hover:bg-sky-200 hover:text-sky-700 sm:flex"
+                className="speed-add-button hidden h-11 w-[86px] flex-col items-center justify-center gap-y-[4px] whitespace-nowrap border border-sky-600 bg-sky-100 px-0 text-[9.5px] font-semibold leading-none text-sky-700 shadow transition-all hover:bg-sky-200 hover:text-sky-700 sm:flex"
                 aria-label="Speed Add"
             >
                 <>

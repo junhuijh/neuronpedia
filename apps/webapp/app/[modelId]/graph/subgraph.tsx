@@ -1318,7 +1318,7 @@ export default function Subgraph() {
         />
       )}
       <Card
-        className={`h-full w-full flex-1 bg-white transition-all sm:block ${clickedIdRef.current ? 'hidden' : ''} ${
+        className={`subgraph h-full w-full flex-1 bg-white transition-all sm:block ${clickedIdRef.current ? 'hidden' : ''} ${
           visState.subgraph?.activeGrouping.isActive ? 'border-sky-600' : ''
         }`}
         style={{
@@ -1618,7 +1618,7 @@ export default function Subgraph() {
                   onClick={() => {
                     setIsSteerModalOpen(true);
                   }}
-                  className={`hidden h-11 w-[86px] flex-col items-center justify-center gap-y-[4px] whitespace-nowrap border border-emerald-600 bg-emerald-100 px-0 text-[9.5px] font-semibold leading-none text-emerald-700 shadow transition-all hover:bg-emerald-200 hover:text-emerald-700 ${
+                  className={`steer-button hidden h-11 w-[86px] flex-col items-center justify-center gap-y-[4px] whitespace-nowrap border border-emerald-600 bg-emerald-100 px-0 text-[9.5px] font-semibold leading-none text-emerald-700 shadow transition-all hover:bg-emerald-200 hover:text-emerald-700 ${
                     visState.subgraph?.activeGrouping.isActive
                       ? ''
                       : !STEER_MODEL_IDS.includes(selectedGraph.metadata.scan) || isOldQwenGraph(selectedGraph)

@@ -29,6 +29,19 @@ type GraphModalContextType = {
   // Steer modal state
   isSteerModalOpen: boolean;
   setIsSteerModalOpen: (isOpen: boolean) => void;
+
+  // Auto Generate modal state
+  isAutoGenerateModalOpen: boolean;
+  setIsAutoGenerateModalOpen: (isOpen: boolean) => void;
+
+  // Speed Add modal state
+  isSpeedAddModalOpen: boolean;
+  setIsSpeedAddModalOpen: (isOpen: boolean) => void;
+
+  // Tutorial modal state
+  isTutorialModalOpen: boolean;
+  setIsTutorialModalOpen: (isOpen: boolean) => void;
+  
 };
 
 // Create the modal context
@@ -44,6 +57,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
   const [isLoadSubgraphModalOpen, setIsLoadSubgraphModalOpenState] = useState<boolean>(false);
   const [isSteerModalOpen, setIsSteerModalOpenState] = useState<boolean>(false);
   const [generateGraphModalPrompt, setGenerateGraphModalPrompt] = useState<string>('');
+  const [isTutorialModalOpen, setIsTutorialModalOpenState] = useState<boolean>(false);
+  const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpenState] = useState<boolean>(false);
+  const [isSpeedAddModalOpen, setIsSpeedAddModalOpenState] = useState<boolean>(false);
 
   // Custom setter for copy modal that closes other modals
   const setIsCopyModalOpen = (isOpen: boolean) => {
@@ -55,6 +71,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       setIsLoadSubgraphModalOpenState(false);
       setIsSteerModalOpenState(false);
       setWelcomeModalInitialStep(null);
+      setIsAutoGenerateModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+      setIsTutorialModalOpenState(false);
     }
   };
 
@@ -67,6 +86,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       setIsSaveSubgraphModalOpenState(false);
       setIsLoadSubgraphModalOpenState(false);
       setIsSteerModalOpenState(false);
+      setIsAutoGenerateModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+      setIsTutorialModalOpenState(false);
     } else {
       setWelcomeModalInitialStep(null);
     }
@@ -83,6 +105,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       setIsLoadSubgraphModalOpenState(false);
       setIsSteerModalOpenState(false);
       setGenerateGraphModalPrompt(prompt || '');
+      setIsAutoGenerateModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+      setIsTutorialModalOpenState(false);
     } else {
       setGenerateGraphModalPrompt('');
     }
@@ -98,6 +123,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       setIsGenerateGraphModalOpenState(false);
       setIsLoadSubgraphModalOpenState(false);
       setIsSteerModalOpenState(false);
+      setIsAutoGenerateModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+      setIsTutorialModalOpenState(false);
     }
   };
 
@@ -111,6 +139,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       setIsGenerateGraphModalOpenState(false);
       setIsSaveSubgraphModalOpenState(false);
       setIsSteerModalOpenState(false);
+      setIsAutoGenerateModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+      setIsTutorialModalOpenState(false);
     }
   };
 
@@ -124,8 +155,57 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       setIsGenerateGraphModalOpenState(false);
       setIsSaveSubgraphModalOpenState(false);
       setIsLoadSubgraphModalOpenState(false);
+      setIsAutoGenerateModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+      setIsTutorialModalOpenState(false);
     }
   };
+
+  // Custom setter for auto generate modal that closes other modals
+  const setIsAutoGenerateModalOpen = (isOpen: boolean) => {
+    setIsAutoGenerateModalOpenState(isOpen);
+    if (isOpen) {
+      setIsCopyModalOpenState(false);
+      setIsWelcomeModalOpenState(false);
+      setWelcomeModalInitialStep(null);
+      setIsGenerateGraphModalOpenState(false);
+      setIsSaveSubgraphModalOpenState(false);
+      setIsSteerModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+      setIsTutorialModalOpenState(false);
+    }
+  };
+
+  // Custom setter for speed add modal that closes other modals
+  const setIsSpeedAddModalOpen = (isOpen: boolean) => {
+    setIsSpeedAddModalOpenState(isOpen);
+    if (isOpen) {
+      setIsCopyModalOpenState(false);
+      setIsWelcomeModalOpenState(false);
+      setWelcomeModalInitialStep(null);
+      setIsGenerateGraphModalOpenState(false);
+      setIsSaveSubgraphModalOpenState(false);
+      setIsSteerModalOpenState(false);
+      setIsAutoGenerateModalOpenState(false);
+      setIsTutorialModalOpenState(false);
+    }
+  };
+
+  // Custom setter for tutorial modal that closes other modals
+  const setIsTutorialModalOpen = (isOpen: boolean) => {
+    setIsTutorialModalOpenState(isOpen);
+    if (isOpen) {
+      setIsCopyModalOpenState(false);
+      setIsWelcomeModalOpenState(false);
+      setWelcomeModalInitialStep(null);
+      setIsGenerateGraphModalOpenState(false);
+      setIsSaveSubgraphModalOpenState(false);
+      setIsSteerModalOpenState(false);
+      setIsAutoGenerateModalOpenState(false);
+      setIsSpeedAddModalOpenState(false);
+    }
+  };
+
 
   // Function to open welcome modal to a specific step
   const openWelcomeModalToStep = (step: number) => {
@@ -137,6 +217,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
     setIsSaveSubgraphModalOpenState(false);
     setIsLoadSubgraphModalOpenState(false);
     setIsSteerModalOpenState(false);
+    setIsAutoGenerateModalOpenState(false);
+    setIsSpeedAddModalOpenState(false);
+    setIsTutorialModalOpenState(false);
   };
 
   // Function to reset welcome modal initial step
@@ -161,6 +244,12 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       setIsLoadSubgraphModalOpen,
       isSteerModalOpen,
       setIsSteerModalOpen,
+      isAutoGenerateModalOpen,
+      setIsAutoGenerateModalOpen,
+      isSpeedAddModalOpen,
+      setIsSpeedAddModalOpen,
+      isTutorialModalOpen,
+      setIsTutorialModalOpen,
       generateGraphModalPrompt,
     }),
     [
@@ -171,6 +260,9 @@ export function GraphModalProvider({ children }: { children: ReactNode }) {
       isSaveSubgraphModalOpen,
       isLoadSubgraphModalOpen,
       isSteerModalOpen,
+      isAutoGenerateModalOpen,
+      isSpeedAddModalOpen,
+      isTutorialModalOpen,
       generateGraphModalPrompt,
     ],
   );

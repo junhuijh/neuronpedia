@@ -16,8 +16,9 @@ import SteerModal from './modals/steer-modal';
 import WelcomeModal from './modals/welcome-modal';
 import GraphNodeConnections from './node-connections';
 import Subgraph from './subgraph';
+import GraphTutorial from './tutorial';
 
-export default function GraphWrapper({ hasSlug, showGenerateModal }: { hasSlug: boolean; showGenerateModal: boolean }) {
+export default function GraphWrapper({ hasSlug, showGenerateModal, showTutorial }: { hasSlug: boolean; showGenerateModal: boolean, showTutorial:boolean }) {
   const { isLoadingGraphData, selectedMetadataGraph, loadingGraphLabel, selectedModelId, selectedSourceSetName } =
     useGraphContext();
   const { isGraphEnabledForSourceSet } = useGlobalContext();
@@ -45,7 +46,7 @@ export default function GraphWrapper({ hasSlug, showGenerateModal }: { hasSlug: 
               </div>
             ) : selectedMetadataGraph ? (
               <div className="flex h-full max-h-full w-full flex-col">
-                <div className="flex h-[50%] max-h-[50%] min-h-[50%] w-full flex-row pb-2">
+                <div className="top-section flex h-[50%] max-h-[50%] min-h-[50%] w-full flex-row pb-2">
                   <LinkGraph />
                   <GraphNodeConnections />
                 </div>
@@ -68,6 +69,7 @@ export default function GraphWrapper({ hasSlug, showGenerateModal }: { hasSlug: 
         <LoadSubgraphModal />
         <SaveSubgraphModal />
         <WelcomeModal hasSlug={hasSlug} showGenerateModal={showGenerateModal} />
+        <GraphTutorial showTutorial={showTutorial}/>
         <GenerateGraphModal showGenerateModal={showGenerateModal} />
         <CopyModal />
         {isGraphEnabledForSourceSet(selectedModelId, selectedSourceSetName) && <SteerModal />}

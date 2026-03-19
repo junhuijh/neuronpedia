@@ -17,6 +17,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ExternalLinkIcon,
+  HelpCircle,
   Plus,
   Repeat2,
   Share2,
@@ -49,7 +50,7 @@ export default function GraphToolbar() {
     shouldShowGraphToCurrentUser,
     selectedSourceSetName,
   } = useGraphContext();
-  const { setIsWelcomeModalOpen, setIsCopyModalOpen, setIsGenerateGraphModalOpen } = useGraphModalContext();
+  const { setIsWelcomeModalOpen, setIsCopyModalOpen, setIsGenerateGraphModalOpen, setIsTutorialModalOpen } = useGraphModalContext();
   const { globalModels, getSourceSet, getHasGraphsSourceSetsForModelId } = useGlobalContext();
 
   if (isEmbed) {
@@ -134,6 +135,20 @@ export default function GraphToolbar() {
             return null;
           })()}
         </Button>
+        
+        {selectedModelId === 'gemma-2-2b' && selectedMetadataGraph?.slug === 'gemma-fact-dallas-austin' && (
+          <Button
+            variant="outline"
+            title="Tutorial"
+            aria-label="Tutorial"
+            size="sm"
+            className="relative hidden h-12 items-center justify-center whitespace-nowrap border-sky-500 bg-sky-50 text-xs font-medium leading-none text-sky-600 hover:bg-sky-100 hover:text-sky-700 sm:flex"
+            onClick={() => setIsTutorialModalOpen(true)}
+          >
+            <HelpCircle className="mr-1.5 h-4 w-4" /> Tutorial
+          </Button>
+        )}
+
 
         <Button
           variant="outline"

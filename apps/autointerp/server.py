@@ -32,6 +32,13 @@ from autogenerate import (
     AutoGenerateRequest,
     generate_auto_generate,
 )
+from filter import (
+    FilterRequest,
+    generate_filter,
+)
+import psycopg2
+import state
+from contextlib import asynccontextmanager
 
 VERSION_PREFIX_PATH = "/v1"
 
@@ -40,6 +47,7 @@ router = APIRouter(prefix=VERSION_PREFIX_PATH)
 # Load environment variables from .env file
 load_dotenv()
 SECRET = os.getenv("SECRET")
+DATABSE_URL = os.getenv("POSTGRES_URL_NON_POOLING")
 
 # only initialize sentry if we have a dsn
 if os.getenv("SENTRY_DSN"):
@@ -112,7 +120,24 @@ async def auto_generate_endpoint(request: AutoGenerateRequest):
     print("Auto Generate Called")
     return await generate_auto_generate(request)
 
-app = FastAPI()
+@router.post("/filter")
+async def auto_generate_endpoint(request: FilterRequest):
+    print("Filter Called")
+    return await generate_filter(request)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    state.sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
+    state.db_pool = psycopg2.pool.ThreadedConnectionPool(
+        minconn=2,
+        maxconn=10,
+        dsn=DATABSE_URL
+    )
+    yield
+    state.db_pool.closeall()
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(router)
 
 

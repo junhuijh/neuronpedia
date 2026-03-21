@@ -26,6 +26,7 @@ export default function GraphControls({
   visState: {
     pruningThreshold?: number;
     densityThreshold?: number;
+    viewMode?: 'attribution' | 'activation';
   };
   updateVisStateField: <K extends keyof CltVisState>(key: K, value: CltVisState[K]) => void;
   allowScroll: boolean;
@@ -34,6 +35,7 @@ export default function GraphControls({
   isExpanded: boolean;
   setIsExpanded: (isExpanded: boolean) => void;
 }) {
+  
   // Check if we're in embed mode
   const isEmbed = clientCheckIsEmbed();
   const [localPruningThreshold, setLocalPruningThreshold] = useState(
@@ -41,6 +43,8 @@ export default function GraphControls({
   );
   const [localDensityThreshold, setLocalDensityThreshold] = useState(visState.densityThreshold || 0.99);
   const { openWelcomeModalToStep } = useGraphModalContext();
+  
+  const [localViewMode, setLocalViewMode] = useState(visState.viewMode ?? 'attribution');
 
   // Debounced update functions
   const debouncedUpdatePruningThreshold = useCallback(
@@ -50,6 +54,11 @@ export default function GraphControls({
 
   const debouncedUpdateDensityThreshold = useCallback(
     debounce((value: number) => updateVisStateField('densityThreshold', value), 500),
+    [updateVisStateField],
+  );
+
+  const debouncedUpdateViewMode = useCallback(
+    debounce((value: 'attribution' | 'activation') => updateVisStateField('viewMode', value), 500),
     [updateVisStateField],
   );
 
@@ -65,6 +74,12 @@ export default function GraphControls({
       setLocalDensityThreshold(visState.densityThreshold);
     }
   }, [visState.densityThreshold]);
+
+  useEffect(() => {
+    if (visState.viewMode !== undefined) {
+      setLocalViewMode(visState.viewMode);
+    }
+  }, [visState.viewMode]);
 
   // Update local state when selectedGraph changes (for initial loading)
   useEffect(() => {
@@ -232,6 +247,27 @@ export default function GraphControls({
           </div>
         </div>
       )}
+      <div className="flex h-[24px] flex-row items-center rounded bg-slate-200 px-2 py-0.5">
+        <div className="flex flex-row items-center gap-x-1.5">
+          <span className="text-[9px] font-medium leading-[10px] text-slate-500">Attribution</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={localViewMode === 'activation'}
+            onClick={() => {
+              const newValue = localViewMode === 'activation' ? 'attribution' : 'activation';
+              setLocalViewMode(newValue);
+              debouncedUpdateViewMode(newValue);
+            }}
+            className={`relative inline-flex h-4 w-7 cursor-pointer items-center rounded-full transition-colors ${localViewMode === 'activation' ? 'bg-sky-600' : 'bg-slate-300'}`}
+          >
+            <span
+              className={`absolute h-3 w-3 rounded-full bg-white shadow transition-transform duration-200 ${localViewMode === 'activation' ? 'translate-x-3.5' : 'translate-x-0.5'}`}
+            />
+          </button>
+          <span className="text-[9px] font-medium leading-[10px] text-slate-500">Activation</span>
+        </div>
+      </div>
     </div>
   );
 }

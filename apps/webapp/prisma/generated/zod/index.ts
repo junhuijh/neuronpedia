@@ -130,6 +130,8 @@ export const SteerOutputToNeuronScalarFieldEnumSchema = z.enum(['modelId','layer
 
 export const SteerOutputScalarFieldEnumSchema = z.enum(['id','type','modelId','steerSpecialTokens','inputText','inputTextMd5','inputTextChatTemplate','inputTextChatTemplateMd5','outputText','outputTextChatTemplate','temperature','numTokens','freqPenalty','seed','strengthMultiplier','steerMethod','createdAt','creatorId','version','logprobs','connectedDefaultOutputId','connectedSteerOutputIds','capMonitorOutput']);
 
+export const DescriptionEmbeddingScalarFieldEnumSchema = z.enum(['id','explanationId','createdAt']);
+
 export const SortOrderSchema = z.enum(['asc','desc']);
 
 export const JsonNullValueInputSchema = z.enum(['JsonNull',]);
@@ -3019,3 +3021,23 @@ export const SteerOutputWithPartialRelationsSchema: z.ZodType<SteerOutputWithPar
   connectedDefaultOutput: z.lazy(() => SteerOutputPartialWithRelationsSchema).nullable(),
   connectedSteerOutputs: z.lazy(() => SteerOutputPartialWithRelationsSchema).array(),
 }).partial())
+
+/////////////////////////////////////////
+// DESCRIPTION EMBEDDING SCHEMA
+/////////////////////////////////////////
+
+export const DescriptionEmbeddingSchema = z.object({
+  id: z.string().cuid(),
+  explanationId: z.string(),
+  createdAt: z.coerce.date(),
+})
+
+export type DescriptionEmbedding = z.infer<typeof DescriptionEmbeddingSchema>
+
+/////////////////////////////////////////
+// DESCRIPTION EMBEDDING PARTIAL SCHEMA
+/////////////////////////////////////////
+
+export const DescriptionEmbeddingPartialSchema = DescriptionEmbeddingSchema.partial()
+
+export type DescriptionEmbeddingPartial = z.infer<typeof DescriptionEmbeddingPartialSchema>

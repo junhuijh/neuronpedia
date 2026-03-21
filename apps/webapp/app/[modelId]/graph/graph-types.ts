@@ -48,7 +48,10 @@ export type CltVisState = {
 
   // only for neuronpedia dashboards
   densityThreshold?: number;
+
+  viewMode?: 'attribution' | 'activation';
 };
+
 export type CLTGraphInnerMetadata = {
   slug: string;
   scan: string;
@@ -194,6 +197,8 @@ export type CLTGraphNode = {
   tmpHoveredLink?: CLTGraphLink;
   tmpHoveredSourceLink?: CLTGraphLink;
   tmpHoveredTargetLink?: CLTGraphLink;
+
+  nodeActivationColor?:string
 };
 
 export type CLTGraphLink = {

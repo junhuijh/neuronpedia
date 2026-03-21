@@ -135,9 +135,17 @@ export default function LinkGraph() {
   const isEditingLabelRef = useRef(isEditingLabel);
   const cRef = useRef<GraphConfig | null>(null);
 
+  const activationColorFn = (activation: number|undefined) => {
+    if (!activation) return "#ffffff"
+    const maxActivation = 30;
+    const t = Math.min(1, Math.max(0, activation / maxActivation));
+    return d3.interpolateGreens(t);
+  };
+
   function colorNodes() {
     selectedGraph?.nodes.forEach((d) => {
       d.nodeColor = '#ffffff';
+      d.nodeActivationColor = activationColorFn(d.activation)
     });
   }
 
@@ -172,6 +180,10 @@ export default function LinkGraph() {
     colorLinks();
     lastColoredGraphSlugRef.current = slug;
   }, [selectedGraph]);
+
+  useEffect(() => {
+    lastColoredGraphSlugRef.current = null;
+  }, [visState.viewMode]);
 
   function distance(x1: number, y1: number, x2: number, y2: number) {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
@@ -992,7 +1004,9 @@ export default function LinkGraph() {
       .attr('opacity', (d) => (d.feature_type === 'mlp reconstruction error' ? 0.35 : 1))
       .attr('font-family', 'Arial')
       .attr('font-size', (d) => featureTypeToTextSize(isMobile, d.feature_type)) // weird safari mobile bug where it renders the diamond too large
-      .attr('fill', (d) => d.nodeColor || '#000')
+      .attr('fill', (d) => visState.viewMode === 'activation' 
+        ? d.nodeActivationColor || '#000'
+        : d.nodeColor || '#000')
       .attr('stroke', '#000')
       .attr('stroke-width', 2)
       .attr('text-anchor', 'middle')
@@ -1037,9 +1051,12 @@ export default function LinkGraph() {
 
     // Style nodes based on their tmp clicked link
     nodeSel
-      .attr('fill', (d) =>
-        d.tmpClickedLink ? d.tmpClickedLink.pctInputColor || d.nodeColor || '#000' : d.nodeColor || '#000',
-      )
+      .attr('fill', (d) => {
+        if (visState.viewMode === 'activation') return d.nodeActivationColor || '#000';
+        return d.tmpClickedLink
+          ? d.tmpClickedLink.pctInputColor || d.nodeColor || '#000'
+          : d.nodeColor || '#000';
+      })
       .attr('stroke', (d) => (d.nodeId === clickedIdRef.current ? '#f0f' : '#000'))
       .attr('stroke-width', (d) => (d.nodeId === clickedIdRef.current ? 1.5 : 0.5));
 
@@ -1225,6 +1242,7 @@ export default function LinkGraph() {
     visState.linkType,
     visState.pinnedIds,
     visState.subgraph,
+    visState.viewMode,
     allowScroll,
     isExpanded,
   ]);

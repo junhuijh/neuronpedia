@@ -1000,6 +1000,13 @@ model SteerOutput {
   @@index([modelId, inputTextChatTemplateMd5, temperature, numTokens, freqPenalty, seed, strengthMultiplier, version, steerSpecialTokens, steerMethod], name: "steerIndexWithoutType2")
 }
 
+model DescriptionEmbedding {
+  id            String   @id @default(cuid())
+  explanationId String   @unique
+  embedding     Unsupported("vector(384)")
+  createdAt     DateTime @default(now())
+}
+
 enum SteerOutputType {
   DEFAULT
   STEERED

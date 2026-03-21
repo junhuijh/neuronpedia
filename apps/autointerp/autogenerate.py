@@ -137,7 +137,7 @@ async def generate_auto_generate(request: AutoGenerateRequest):
         between_nodes = [n for n in request.newPinned.values() if n.feature_type not in ("embedding", "logit")]
         node_names_list = [n.final_name for n in between_nodes]
 
-        embeddings = model.encode(node_names_list)
+        embeddings = state.sentence_model.encode(node_names_list)
         clustering = AgglomerativeClustering(
             n_clusters=None,
             distance_threshold=1 - min_similarity_group,

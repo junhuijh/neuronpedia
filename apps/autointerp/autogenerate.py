@@ -115,7 +115,7 @@ async def generate_auto_generate(request: AutoGenerateRequest):
 
                 if child_node.inDegree == 0 and child_node.node_id not in visited:
                     queue.append(child_node)
-            print(f"{len(visited)}/{total}")
+            # print(f"{len(visited)}/{total}")
 
 
         # Prune those that didnt vote or didnt get votes
@@ -135,6 +135,13 @@ async def generate_auto_generate(request: AutoGenerateRequest):
 
         # Now group them 
         between_nodes = [n for n in request.newPinned.values() if n.feature_type not in ("embedding", "logit")]
+        if len(between_nodes)<=2:
+            return AutoGenerateResponse(
+                groups=[],
+                group_names=[],
+                final_pinned_ids=[n.node_id for n in request.newPinned.values()],
+                final_pinned=list(request.newPinned.values())
+            )
         node_names_list = [n.final_name for n in between_nodes]
 
         embeddings = state.sentence_model.encode(node_names_list)

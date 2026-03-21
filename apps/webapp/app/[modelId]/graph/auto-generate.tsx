@@ -356,8 +356,14 @@ export default function AutoGenerateButton({
             const source = newPinned.get(l.source);
             const target = newPinned.get(l.target);
             // REVERSE!! Source here is the child, target is the parent
-            if (source) source.inDegree+=1
-            if (target) target.child_ids.push(l.source);
+            if (source && target){
+              if (!target.child_ids.includes(l.source)){
+                source.inDegree+=1
+                target.child_ids.push(l.source);
+              }else{
+                console.log("Duplicate Found?")
+              }
+            }
           }
         });
     

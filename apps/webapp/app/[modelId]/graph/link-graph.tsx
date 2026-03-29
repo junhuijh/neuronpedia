@@ -702,6 +702,7 @@ export default function LinkGraph() {
     const unregister = registerClickedCallback((clickedId) => {
       // Update clicked links data and visuals when clicked state changes externally
       onClickedChange(clickedId);
+      console.log(clickedId)
     });
 
     return unregister; // Cleanup on unmount
@@ -818,11 +819,11 @@ export default function LinkGraph() {
 
     if (visState.clusteredMode && clusteredNodeIds) {
       nodes = nodes.filter((n) => n.node_id && clusteredNodeIds.has(n.node_id));
-      const filteredNodeIds = new Set(nodes.map(n => n.node_id));
-      data.links = data.links.filter(link => 
-        filteredNodeIds.has(link.source) && 
-        filteredNodeIds.has(link.target)
-      )
+      // const filteredNodeIds = new Set(nodes.map(n => n.node_id));
+      // data.links = data.links.filter(link => 
+      //   filteredNodeIds.has(link.source) && 
+      //   filteredNodeIds.has(link.target)
+      // )
     }
     
     

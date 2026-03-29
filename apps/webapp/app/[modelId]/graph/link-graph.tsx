@@ -818,6 +818,11 @@ export default function LinkGraph() {
 
     if (visState.clusteredMode && clusteredNodeIds) {
       nodes = nodes.filter((n) => n.node_id && clusteredNodeIds.has(n.node_id));
+      const filteredNodeIds = new Set(nodes.map(n => n.node_id));
+      data.links = data.links.filter(link => 
+        filteredNodeIds.has(link.source) && 
+        filteredNodeIds.has(link.target)
+      )
     }
     
     

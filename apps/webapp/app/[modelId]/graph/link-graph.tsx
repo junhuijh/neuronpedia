@@ -17,6 +17,7 @@ import {
   isHideLayer,
   showTooltip,
 } from './utils';
+import { node } from 'prop-types';
 
 const PERCENT_INCREASE_PER_ADDITIONAL_TOKEN = 0.03;
 const X_LABEL_ROTATION_DEGREES = 30;
@@ -119,6 +120,7 @@ export default function LinkGraph() {
   const bottomRef = useRef<SVGSVGElement>(null);
   const [allowScroll, setAllowScroll] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [clusteredNodeIds, setClusteredNodeIds] = useState<Set<string> | null>(null);
   const canvasRefs = useRef<Array<HTMLCanvasElement | null>>([null, null, null, null, null]);
   const { visState, selectedGraph, updateVisStateField, togglePin, isEditingLabel, makeTooltipText } =
     useGraphContext();
@@ -717,6 +719,90 @@ export default function LinkGraph() {
     updateHClerps();
   }, [updateHClerps]);
 
+  useEffect(() => {
+    if (!visState.clusteredMode || !selectedGraph) return;
+    if (clusteredNodeIds && clusteredNodeIds.size>=0) return;
+    // Cluster by semantic similarity within layer and ctx
+    const cluster = async () => {
+      const logitsEmbeddingsNodes: CLTGraphNode[] = []
+      const layerCtxMap = new Map<string, string[]>();
+      selectedGraph.nodes.forEach((node)=>{
+        // Ignore output and input
+        if (node.feature_type == "logit" || node.feature_type=="embedding"){
+          logitsEmbeddingsNodes.push(node)
+          return
+        }
+        const layer = node.featureDetailNP?.layer
+        if (!layer) return
+        const arr = layerCtxMap.get(`${layer}_${node.ctx_idx}`)
+        if(node.featureDetailNP?.index && node.featureDetailNP?.index !='-1'){
+          if(arr){
+            arr.push(node.featureDetailNP.index)
+          }else{
+            layerCtxMap.set(`${layer}_${node.ctx_idx}`,[node.featureDetailNP.index])
+          }
+        }
+      })
+      const filterByClusters = (
+        nodes: CLTGraphNode[],
+        clusters: Record<string, number[][]>,
+        logitsEmbeddingsNodes: CLTGraphNode[]
+      ) => {
+        const keepSet = new Set<string>()
+        logitsEmbeddingsNodes.forEach((node)=>{
+          keepSet.add(node.node_id)
+        })
+        Object.entries(clusters).forEach(([layerCtx, clusterGroups]) => {
+          const layerCtxSplit = layerCtx.split('_')
+          const layer = layerCtxSplit[0]
+          const ctx = layerCtxSplit[1]
+          clusterGroups.forEach((cluster) => {
+            const clusterNodes = nodes.filter((node) =>
+              cluster.includes(parseInt(node.featureDetailNP?.index??"")) &&
+              String(node.featureDetailNP?.layer) === layer &&
+              String(node.ctx_idx) === ctx
+            )
+            // Find highest influence among clusterNodes
+            let best:(CLTGraphNode|undefined) = undefined
+            let best_influcence = 0
+            for (const node of clusterNodes) {
+              if(node.influence && node.influence>best_influcence){
+                best=node
+                best_influcence = node.influence
+              }
+            }
+            if (best !== undefined && best.node_id){
+              keepSet.add(best.node_id)
+            }
+          })
+        })
+        return nodes.filter((node) => node.node_id && keepSet.has(node.node_id));
+      }
+      try {
+        const response = await fetch("http://localhost:5003/v1/cluster",{
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            layerCtxMap:Object.fromEntries(layerCtxMap)
+          })
+        })
+        const data = await response.json()
+        const clusters = data.clusters
+        const clustered = filterByClusters(selectedGraph.nodes, clusters, logitsEmbeddingsNodes)
+        const initialSize = selectedGraph.nodes.length
+        const afterSize = clustered.length
+        console.log(selectedGraph.nodes.length)
+        console.log(clustered.length)
+        console.log("Clustered view has reduced nodes by: ", initialSize-afterSize, ", ", ((initialSize-afterSize)/initialSize*100).toFixed(2), "%")
+        setClusteredNodeIds(new Set(clustered.map((n) => n.node_id).filter(Boolean) as string[]))
+      } catch (error) {
+      }
+    }
+    cluster();
+}, [selectedGraph, visState.clusteredMode]);
+
   // Initialize the D3 graph visualization
   useEffect(() => {
     if (!svgRef.current || !selectedGraph) return;
@@ -729,6 +815,13 @@ export default function LinkGraph() {
     if (clientCheckClaudeMode()) {
       nodes = nodes.filter((d) => d.feature_type !== 'mlp reconstruction error');
     }
+
+    if (visState.clusteredMode && clusteredNodeIds) {
+      nodes = nodes.filter((n) => n.node_id && clusteredNodeIds.has(n.node_id));
+    }
+    
+    
+    
 
     // Set up the base SVG container
     const svgContainer = d3.select(svgRef.current);
@@ -1243,6 +1336,8 @@ export default function LinkGraph() {
     visState.pinnedIds,
     visState.subgraph,
     visState.viewMode,
+    visState.clusteredMode,
+    clusteredNodeIds,
     allowScroll,
     isExpanded,
   ]);

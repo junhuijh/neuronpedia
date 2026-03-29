@@ -36,6 +36,10 @@ from filter import (
     FilterRequest,
     generate_filter,
 )
+from cluster import (
+    ClusterRequest,
+    generate_cluster,
+)
 import psycopg2
 import state
 from contextlib import asynccontextmanager
@@ -124,6 +128,11 @@ async def auto_generate_endpoint(request: AutoGenerateRequest):
 async def auto_generate_endpoint(request: FilterRequest):
     print("Filter Called")
     return await generate_filter(request)
+
+@router.post("/cluster")
+async def cluster_endpoint(request: ClusterRequest):
+    print("Cluster Called")
+    return await generate_cluster(request)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

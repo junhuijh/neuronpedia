@@ -27,6 +27,7 @@ export default function GraphControls({
     pruningThreshold?: number;
     densityThreshold?: number;
     viewMode?: 'attribution' | 'activation';
+    clusteredMode?:boolean;
   };
   updateVisStateField: <K extends keyof CltVisState>(key: K, value: CltVisState[K]) => void;
   allowScroll: boolean;
@@ -45,6 +46,7 @@ export default function GraphControls({
   const { openWelcomeModalToStep } = useGraphModalContext();
   
   const [localViewMode, setLocalViewMode] = useState(visState.viewMode ?? 'attribution');
+  const [localClusteredMode, setLocalClusteredMode] = useState(visState.clusteredMode);
 
   // Debounced update functions
   const debouncedUpdatePruningThreshold = useCallback(
@@ -59,6 +61,11 @@ export default function GraphControls({
 
   const debouncedUpdateViewMode = useCallback(
     debounce((value: 'attribution' | 'activation') => updateVisStateField('viewMode', value), 500),
+    [updateVisStateField],
+  );
+
+  const debouncedClusteredMode = useCallback(
+    debounce((value: boolean) => updateVisStateField('clusteredMode', value), 500),
     [updateVisStateField],
   );
 
@@ -80,6 +87,12 @@ export default function GraphControls({
       setLocalViewMode(visState.viewMode);
     }
   }, [visState.viewMode]);
+
+  useEffect(() => {
+    if (visState.clusteredMode !== undefined) {
+      setLocalClusteredMode(visState.clusteredMode);
+    }
+  }, [visState.clusteredMode]);
 
   // Update local state when selectedGraph changes (for initial loading)
   useEffect(() => {
@@ -247,6 +260,25 @@ export default function GraphControls({
           </div>
         </div>
       )}
+      <div className="flex h-[24px] flex-row items-center rounded bg-slate-200 px-2 py-0.5">
+        <div className="flex flex-row items-center gap-x-1.5">
+          <span className="text-[9px] font-medium leading-[10px] text-slate-500">Clustered Mode</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={localClusteredMode}
+            onClick={() => {
+              setLocalClusteredMode(() => !localClusteredMode)
+              debouncedClusteredMode(!localClusteredMode);
+            }}
+            className={`relative inline-flex h-4 w-7 cursor-pointer items-center rounded-full transition-colors ${localClusteredMode ? 'bg-sky-600' : 'bg-slate-300'}`}
+          >
+            <span
+              className={`absolute h-3 w-3 rounded-full bg-white shadow transition-transform duration-200 ${localClusteredMode ? 'translate-x-3.5' : 'translate-x-0.5'}`}
+            />
+          </button>
+        </div>
+      </div>
       <div className="flex h-[24px] flex-row items-center rounded bg-slate-200 px-2 py-0.5">
         <div className="flex flex-row items-center gap-x-1.5">
           <span className="text-[9px] font-medium leading-[10px] text-slate-500">Attribution</span>

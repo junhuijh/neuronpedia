@@ -50,6 +50,7 @@ export type CltVisState = {
   densityThreshold?: number;
 
   viewMode?: 'attribution' | 'activation';
+  clusteredMode?: boolean;
 };
 
 export type CLTGraphInnerMetadata = {

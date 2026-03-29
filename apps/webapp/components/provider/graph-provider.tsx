@@ -232,6 +232,9 @@ export function GraphProvider({
     clerps: initialClerps || [],
 
     densityThreshold: 1,
+
+    viewMode:"attribution",
+    clusteredMode:false
   });
 
   const getOriginalClerpForNode = (node: CLTGraphNode) => {

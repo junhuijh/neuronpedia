@@ -702,7 +702,6 @@ export default function LinkGraph() {
     const unregister = registerClickedCallback((clickedId) => {
       // Update clicked links data and visuals when clicked state changes externally
       onClickedChange(clickedId);
-      console.log(clickedId)
     });
 
     return unregister; // Cleanup on unmount

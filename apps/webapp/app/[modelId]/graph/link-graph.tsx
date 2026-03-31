@@ -18,6 +18,7 @@ import {
   showTooltip,
 } from './utils';
 import { node } from 'prop-types';
+import { FYP_SERVER } from '@/lib/env';
 
 const PERCENT_INCREASE_PER_ADDITIONAL_TOKEN = 0.03;
 const X_LABEL_ROTATION_DEGREES = 30;
@@ -779,7 +780,7 @@ export default function LinkGraph() {
         return nodes.filter((node) => node.node_id && keepSet.has(node.node_id));
       }
       try {
-        const response = await fetch("http://localhost:5010/fyp/cluster",{
+        const response = await fetch(`http://${FYP_SERVER}/fyp/cluster`,{
           method: "POST",
           headers: {
             "Content-Type": "application/json",

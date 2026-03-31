@@ -160,3 +160,5 @@ export const API_KEY_HEADER_NAME = 'x-api-key';
 export const HIGHER_LIMIT_API_TOKENS = process.env.HIGHER_LIMIT_API_TOKENS
   ? process.env.HIGHER_LIMIT_API_TOKENS.split(',').map((t) => t.trim())
   : [];
+
+export const FYP_SERVER = process.env.FYP_SERVER || 'http://localhost:5010';

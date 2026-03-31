@@ -7,6 +7,7 @@ import { LoadingSpinner } from "@/components/svg/loading-spinner";
 import { useForm } from "react-hook-form";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { useGraphModalContext } from "@/components/provider/graph-modal-provider";
+import { FYP_SERVER } from '@/lib/env';
 
 
 type AutoGenerateGraphForm = {
@@ -368,7 +369,7 @@ export default function AutoGenerateButton({
         });
     
         // Call API
-        const response = await fetch('http://localhost:5010/fyp/auto_generate', {
+        const response = await fetch(`http://${FYP_SERVER}/fyp/auto_generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

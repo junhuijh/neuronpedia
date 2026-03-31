@@ -10,6 +10,7 @@ import { Badge } from "@/components/shadcn/badge"
 import { Input } from "@/components/shadcn/input"
 import { Button } from "@/components/shadcn/button"
 import { useForm } from "react-hook-form"
+import { FYP_SERVER } from "@/lib/env"
 
 type Activation = {
     tokens: string[]
@@ -46,7 +47,7 @@ export default function CaptchaPage() {
     useEffect(() => {
         // cloudflare turnstile
         window.handleTurnstileSuccess = (token: string) => {
-            fetch("http://localhost:5010/fyp/verify_turnstile", {
+            fetch(`http://${FYP_SERVER}/fyp/verify_turnstile`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -61,7 +62,7 @@ export default function CaptchaPage() {
             })
         }
         // Fetch random feature from the database
-        fetch("http://localhost:5010/fyp/random_feature", {
+        fetch(`http://${FYP_SERVER}/fyp/random_feature`, {
             method: "GET"
         })
         .then(async(response) => {
@@ -73,7 +74,7 @@ export default function CaptchaPage() {
 
 
     const handleFinalSubmit = async (values: ActivationsForm) => {
-        const response = await fetch("http://localhost:5010/fyp/save_captcha", {
+        const response = await fetch(`http://${FYP_SERVER}/fyp/save_captcha`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

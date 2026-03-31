@@ -16,6 +16,7 @@ import {
 } from './utils';
 import { Badge } from '@/components/shadcn/badge';
 import { Input } from '@/components/shadcn/input';
+import { FYP_SERVER } from '@/lib/env';
 
 function FeatureList({
   title,
@@ -173,7 +174,7 @@ function ActivationFeatureList({
     const timeout = setTimeout(async () => {
       // send to backend
       try {
-        const response = await fetch("http://localhost:5010/fyp/filter",{
+        const response = await fetch(`http://${FYP_SERVER}/fyp/filter`,{
           method: "POST",
           headers: {
             "Content-Type": "application/json",

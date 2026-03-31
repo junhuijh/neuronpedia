@@ -132,6 +132,10 @@ export const SteerOutputScalarFieldEnumSchema = z.enum(['id','type','modelId','s
 
 export const DescriptionEmbeddingScalarFieldEnumSchema = z.enum(['id','explanationId','createdAt']);
 
+export const CaptchaScalarFieldEnumSchema = z.enum(['id','modelId','layer','index','logitsAnswer','activationsType','activationsAnswer']);
+
+export const CaptchaTokenScalarFieldEnumSchema = z.enum(['token','captchaId','expiresAt']);
+
 export const SortOrderSchema = z.enum(['asc','desc']);
 
 export const JsonNullValueInputSchema = z.enum(['JsonNull',]);
@@ -3041,3 +3045,111 @@ export type DescriptionEmbedding = z.infer<typeof DescriptionEmbeddingSchema>
 export const DescriptionEmbeddingPartialSchema = DescriptionEmbeddingSchema.partial()
 
 export type DescriptionEmbeddingPartial = z.infer<typeof DescriptionEmbeddingPartialSchema>
+
+/////////////////////////////////////////
+// CAPTCHA SCHEMA
+/////////////////////////////////////////
+
+export const CaptchaSchema = z.object({
+  id: z.number().int(),
+  modelId: z.string(),
+  layer: z.string(),
+  index: z.number().int(),
+  logitsAnswer: z.string().nullable(),
+  activationsType: z.string().nullable(),
+  activationsAnswer: z.string().nullable(),
+})
+
+export type Captcha = z.infer<typeof CaptchaSchema>
+
+/////////////////////////////////////////
+// CAPTCHA PARTIAL SCHEMA
+/////////////////////////////////////////
+
+export const CaptchaPartialSchema = CaptchaSchema.partial()
+
+export type CaptchaPartial = z.infer<typeof CaptchaPartialSchema>
+
+// CAPTCHA RELATION SCHEMA
+//------------------------------------------------------
+
+export type CaptchaRelations = {
+  tokens: CaptchaTokenWithRelations[];
+};
+
+export type CaptchaWithRelations = z.infer<typeof CaptchaSchema> & CaptchaRelations
+
+export const CaptchaWithRelationsSchema: z.ZodType<CaptchaWithRelations> = CaptchaSchema.merge(z.object({
+  tokens: z.lazy(() => CaptchaTokenWithRelationsSchema).array(),
+}))
+
+// CAPTCHA PARTIAL RELATION SCHEMA
+//------------------------------------------------------
+
+export type CaptchaPartialRelations = {
+  tokens?: CaptchaTokenPartialWithRelations[];
+};
+
+export type CaptchaPartialWithRelations = z.infer<typeof CaptchaPartialSchema> & CaptchaPartialRelations
+
+export const CaptchaPartialWithRelationsSchema: z.ZodType<CaptchaPartialWithRelations> = CaptchaPartialSchema.merge(z.object({
+  tokens: z.lazy(() => CaptchaTokenPartialWithRelationsSchema).array(),
+})).partial()
+
+export type CaptchaWithPartialRelations = z.infer<typeof CaptchaSchema> & CaptchaPartialRelations
+
+export const CaptchaWithPartialRelationsSchema: z.ZodType<CaptchaWithPartialRelations> = CaptchaSchema.merge(z.object({
+  tokens: z.lazy(() => CaptchaTokenPartialWithRelationsSchema).array(),
+}).partial())
+
+/////////////////////////////////////////
+// CAPTCHA TOKEN SCHEMA
+/////////////////////////////////////////
+
+export const CaptchaTokenSchema = z.object({
+  token: z.string(),
+  captchaId: z.number().int(),
+  expiresAt: z.coerce.date(),
+})
+
+export type CaptchaToken = z.infer<typeof CaptchaTokenSchema>
+
+/////////////////////////////////////////
+// CAPTCHA TOKEN PARTIAL SCHEMA
+/////////////////////////////////////////
+
+export const CaptchaTokenPartialSchema = CaptchaTokenSchema.partial()
+
+export type CaptchaTokenPartial = z.infer<typeof CaptchaTokenPartialSchema>
+
+// CAPTCHA TOKEN RELATION SCHEMA
+//------------------------------------------------------
+
+export type CaptchaTokenRelations = {
+  captcha: CaptchaWithRelations;
+};
+
+export type CaptchaTokenWithRelations = z.infer<typeof CaptchaTokenSchema> & CaptchaTokenRelations
+
+export const CaptchaTokenWithRelationsSchema: z.ZodType<CaptchaTokenWithRelations> = CaptchaTokenSchema.merge(z.object({
+  captcha: z.lazy(() => CaptchaWithRelationsSchema),
+}))
+
+// CAPTCHA TOKEN PARTIAL RELATION SCHEMA
+//------------------------------------------------------
+
+export type CaptchaTokenPartialRelations = {
+  captcha?: CaptchaPartialWithRelations;
+};
+
+export type CaptchaTokenPartialWithRelations = z.infer<typeof CaptchaTokenPartialSchema> & CaptchaTokenPartialRelations
+
+export const CaptchaTokenPartialWithRelationsSchema: z.ZodType<CaptchaTokenPartialWithRelations> = CaptchaTokenPartialSchema.merge(z.object({
+  captcha: z.lazy(() => CaptchaPartialWithRelationsSchema),
+})).partial()
+
+export type CaptchaTokenWithPartialRelations = z.infer<typeof CaptchaTokenSchema> & CaptchaTokenPartialRelations
+
+export const CaptchaTokenWithPartialRelationsSchema: z.ZodType<CaptchaTokenWithPartialRelations> = CaptchaTokenSchema.merge(z.object({
+  captcha: z.lazy(() => CaptchaPartialWithRelationsSchema),
+}).partial())

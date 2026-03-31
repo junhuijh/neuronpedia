@@ -173,7 +173,7 @@ function ActivationFeatureList({
     const timeout = setTimeout(async () => {
       // send to backend
       try {
-        const response = await fetch("http://localhost:5003/v1/filter",{
+        const response = await fetch("http://localhost:5010/fyp/filter",{
           method: "POST",
           headers: {
             "Content-Type": "application/json",

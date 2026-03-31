@@ -779,7 +779,7 @@ export default function LinkGraph() {
         return nodes.filter((node) => node.node_id && keepSet.has(node.node_id));
       }
       try {
-        const response = await fetch("http://localhost:5003/v1/cluster",{
+        const response = await fetch("http://localhost:5010/fyp/cluster",{
           method: "POST",
           headers: {
             "Content-Type": "application/json",

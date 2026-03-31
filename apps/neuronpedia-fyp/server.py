@@ -1,13 +1,12 @@
 import os
 from collections.abc import Awaitable, Callable
 
-import sentry_sdk
 from fastapi import Body
 import torch
 import uvicorn
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
+from fastapi import APIRouter, FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from sentence_transformers import SentenceTransformer
 
@@ -23,6 +22,17 @@ from cluster import (
     ClusterRequest,
     generate_cluster,
 )
+from captcha import (
+    VerifyTurnstileRequest,
+    SaveCaptchaRequest,
+    VerifyCaptchaRequest,
+    generate_verify_turnstile,
+    generate_random_feature,
+    generate_save_captcha,
+    generate_verify_captcha
+)
+
+
 import psycopg2
 import state
 from contextlib import asynccontextmanager
@@ -35,17 +45,17 @@ load_dotenv()
 SECRET = os.getenv("SECRET")
 DATABSE_URL = os.getenv("POSTGRES_URL_NON_POOLING")
 
-def initialize_globals():
-    print("initializing globals")
-    global model
-    if torch.cuda.is_available():
-        model = SentenceTransformer(
-            "dunzhang/stella_en_400M_v5",
-            trust_remote_code=True,  # type: ignore[call-arg]
-        ).cuda()
-        print("initialized embedding model")
-    else:
-        print("no cuda available, not initializing embedding model")
+# def initialize_globals():
+#     print("initializing globals")
+#     global model
+#     if torch.cuda.is_available():
+#         model = SentenceTransformer(
+#             "dunzhang/stella_en_400M_v5",
+#             trust_remote_code=True,  # type: ignore[call-arg]
+#         ).cuda()
+#         print("initialized embedding model")
+#     else:
+#         print("no cuda available, not initializing embedding model")
 
 @router.post("/auto_generate")
 async def auto_generate_endpoint(request: AutoGenerateRequest):
@@ -61,6 +71,29 @@ async def auto_generate_endpoint(request: FilterRequest):
 async def cluster_endpoint(request: ClusterRequest):
     print("Cluster Called")
     return await generate_cluster(request)
+
+
+@router.post("/verify_turnstile")
+async def verify_turnstile_endpoint(request: VerifyTurnstileRequest):
+    print("Verify Turnstile Called")
+    return await generate_verify_turnstile(request)
+
+@router.get("/random_feature")
+async def random_feature_endpoint():
+    print("Random Feature Called")
+    return await generate_random_feature()
+
+@router.post("/save_captcha")
+async def save_captcha_endpoint(request: SaveCaptchaRequest):
+    print("Save Captcha Called")
+    return await generate_save_captcha(request)
+
+@router.post("/verify_captcha")
+async def verify_captcha_endpoint(request: VerifyCaptchaRequest):
+    print("Verify Captcha Called")
+    return await generate_verify_captcha(request)
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -86,9 +119,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")  # type: ignore[deprecated]
-async def startup_event():
-    initialize_globals()
+# @app.on_event("startup")  # type: ignore[deprecated]
+# async def startup_event():
+#     initialize_globals()
 
 
 @app.middleware("http")

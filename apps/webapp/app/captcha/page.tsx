@@ -4,17 +4,24 @@ declare global {
         handleTurnstileSuccess: (token: string) => void
     }
 }
-import { useState, useEffect, Dispatch, SetStateAction } from "react"
+import { useState, useEffect, Dispatch, SetStateAction, useRef } from "react"
 import Script from "next/script"
 import { Badge } from "@/components/shadcn/badge"
 import { Input } from "@/components/shadcn/input"
 import { Button } from "@/components/shadcn/button"
 import { useForm } from "react-hook-form"
 
+type Activation = {
+    tokens: string[]
+    maxValueTokenIndex: number
+    values: number[]
+}
+
 type Feature = {
+    modelId:string,
     layer:string,
     index:string,
-    activations:string[],
+    activations:Activation[],
     logits:string[]
 }
 
@@ -31,18 +38,17 @@ type ActivationsForm = {
 
 export default function CaptchaPage() {
     const [feature, setFeature] = useState<Feature | null>(null)
-    const [step, setStep] = useState<"turnstile" | "logits" | "activations" | "done">("activations")
-    const [logitsAnswer, setLogitsAnswer] = useState<string>("")
-    const [activationsType, setActivationsType] = useState<"focus" | "context" | null>(null)
-    const [activationsAnswer, setActivationsAnswer] = useState("")
+    const [step, setStep] = useState<"turnstile" | "logits" | "activations" | "done">("turnstile")
+    const [logitsAnswer, setLogitsAnswer] = useState<string| null>("")
 
     const CLOUDFLAREPUBLICKEY = "0x4AAAAAACxnUXZIOHnu00wa"
 
     useEffect(() => {
         // cloudflare turnstile
         window.handleTurnstileSuccess = (token: string) => {
-            fetch("http://localhost:3010/fyp/verify_turnstile", {
+            fetch("http://localhost:5010/fyp/verify_turnstile", {
                 method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     token: token 
                 })
@@ -55,25 +61,34 @@ export default function CaptchaPage() {
             })
         }
         // Fetch random feature from the database
-        // fetch("http://localhost:3010/fyp/feature", {
-        //     method: "GET"
-        // })
-        // .then(async(response) => {
-        //     const data = await response.json()
-        //     setFeature(data.feature)
-        // })
+        fetch("http://localhost:5010/fyp/random_feature", {
+            method: "GET"
+        })
+        .then(async(response) => {
+            const data = await response.json()
+            console.log(data)
+            setFeature(data)
+        })
     }, [])
 
 
-    const handleFinalSubmit = async () => {
-        // Generate random token
-        // Save token in DB
-        // Send that token to the parent
-        // Parent to call API to check if token is valid
-        // If token has been checked, delete that token
+    const handleFinalSubmit = async (values: ActivationsForm) => {
+        const response = await fetch("http://localhost:5010/fyp/save_captcha", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                modelId: feature?.modelId,
+                layer: feature?.layer,
+                index: feature?.index,
+                logits_answer: logitsAnswer,
+                activations_type: values.activationsSkip ? null : values.activationsType,
+                activations_answer: values.activationsSkip ? null : values.activationsAnswer,
+            })
+        })
+        const data = await response.json()
         window.parent.postMessage({
             verified: true,
-            token: ""
+            token: data.token
         }, "*")
         setStep("done")
     }
@@ -99,7 +114,7 @@ export default function CaptchaPage() {
         setLogitsAnswer,
     }:{
         logits:string[]
-        setLogitsAnswer:Dispatch<SetStateAction<string>>
+        setLogitsAnswer:Dispatch<SetStateAction<string | null>>
     }){
         
         const defaultValues:LogitsForm = {
@@ -110,14 +125,15 @@ export default function CaptchaPage() {
             defaultValues:defaultValues
         })
         const handleSubmit= (values:LogitsForm)=>{
-            if (values.logitSkip) setLogitsAnswer("No similarity found")
+            if (values.logitSkip) setLogitsAnswer(null)
             else setLogitsAnswer(values.logitAnswer)
+            setStep("activations")
         }
 
         return (
             <form onSubmit={form.handleSubmit(handleSubmit)}>
                 <div
-                    className="flex flex-col gap-y-2"
+                    className="flex flex-col gap-y-2 text-center w-[400px]"
                 >
                     <div
                         className=""
@@ -125,11 +141,12 @@ export default function CaptchaPage() {
                         What is the similar concept among these words?
                     </div>
                     <div
-                        className="flex flex-wrap bg-slate-300 rounded-md px-2 py-2 gap-x-5"
+                        className="flex flex-wrap bg-slate-300 rounded-md px-2 py-2 gap-x-5 gap-y-2"
                     >
-                        {logits.map((logit)=>{
+                        {logits.map((logit, index)=>{
                             return(
                                 <Badge
+                                    key={index}
                                     className="bg-slate-400"
                                 >
                                     {logit}
@@ -170,24 +187,57 @@ export default function CaptchaPage() {
 
     function ActivationsText({
         activation
-    }:{
-        activation:string
-    }){
+    }: {
+        activation: Activation
+    }) {
         const [expanded, setExpanded] = useState(false)
+        const containerRef = useRef<HTMLDivElement>(null)
+        const maxVal = Math.max(activation.values[activation.maxValueTokenIndex])
+        const getColor = (value: number) => {
+            if (value <= 0) return "transparent"
+            const intensity = value / maxVal
+            return `rgba(16, 185, 129, ${intensity * 0.8})`
+        }
 
-        return(
-            <div 
-                className={`
-                    w-full p-2 cursor-pointer text-xs 
-                    ${expanded ? "" : "overflow-x-auto whitespace-nowrap"}
-                `}
-                onWheel={e => {
+        useEffect(() => {
+            const element = containerRef.current
+            if (!element) return
+
+            // Scroll to max token when collapsed 
+            if (!expanded) {
+                const tokens = element.querySelectorAll("span")
+                const mainToken = tokens[activation.maxValueTokenIndex]
+                mainToken?.scrollIntoView({ block: "nearest", inline: "center" })
+            }
+
+            const handler = (e: WheelEvent) => {
+                if (!expanded) {
                     e.preventDefault()
-                    e.currentTarget.scrollLeft += e.deltaY
-                }}
+                    element.scrollLeft += e.deltaY
+                }
+            }
+            element.addEventListener("wheel", handler, { passive: false })
+            return () => element.removeEventListener("wheel", handler)
+        }, [expanded])
+
+        return (
+            <div
+                ref={containerRef}
+                className={`
+                    w-full border border-slate-400 rounded-md p-2 cursor-pointer text-xs flex flex-row 
+                    ${expanded ? "flex-wrap" : "overflow-x-auto whitespace-nowrap"}
+                `}
                 onClick={() => setExpanded(!expanded)}
             >
-                {activation}
+                {activation.tokens.map((token, i) => (
+                    <span
+                        key={i}
+                        style={{ backgroundColor: getColor(activation.values[i]) }}
+                        className="rounded-sm whitespace-pre"
+                    >
+                        {token}
+                    </span>
+                ))}
             </div>
         )
     }
@@ -196,7 +246,7 @@ export default function CaptchaPage() {
         activations,
         handleFinalSubmit
     }:{
-        activations:string[]
+        activations:Activation[]
         handleFinalSubmit: (values:ActivationsForm) => void
     }){
         
@@ -213,13 +263,23 @@ export default function CaptchaPage() {
             handleFinalSubmit(values)
         }
         return (
-            <div className="flex flex-col gap-y-2 w-[400px]">
+            <div className="flex flex-col gap-y-2 w-[400px] text-center">
                 <div>What is the similarity among these passages?</div>
-                <div className="text-sm text-gray-500">instruction</div>
-                <div className="flex flex-col">
-                    {activations.map((activation)=>{
+                {subStep==="type"?
+                    <div className="text-sm text-gray-500 text-left">
+                        The green highlighted word is the 'focus word'. 
+                        Do these passages share a similar focus word, 
+                        or do they share similar surrounding context?
+                    </div>
+                :
+                    <div className="text-sm text-gray-500">
+                        What is the similarity?
+                    </div>
+                }
+                <div className="flex flex-col gap-y-2 ">
+                    {activations.map((activation, index)=>{
                         return(
-                            <ActivationsText activation={activation}/>
+                            <ActivationsText key={index} activation={activation}/>
                         )
                     })}
                 </div>
@@ -261,6 +321,7 @@ export default function CaptchaPage() {
                         <Input
                             placeholder="e.g. location, city names, law"
                             className=""
+                            disabled={form.watch("activationsSkip")}
                             {...form.register("activationsAnswer", {
                                 validate: (val)=> val.length > 0 || "Please enter an answer or check \"No similarity\""
                             })}
@@ -280,6 +341,9 @@ export default function CaptchaPage() {
                         <Button
                             className="w-full bg-slate-400 hover:bg-slate-600"
                             type="submit"
+                            onClick={()=>{
+                                handleSubmit(form.getValues())
+                            }}
                         >
                             Submit
                         </Button>
@@ -301,27 +365,27 @@ export default function CaptchaPage() {
 
     return(
         <>
-            {step==="turnstile"?
-                <TurnstileTag/>
-            :step==="logits"?
-                <LogitsTag 
-                    logits={["Washington","India","Los","West","Berlin"]} 
-                    setLogitsAnswer={setLogitsAnswer} 
-                />
-            :step==="activations"?
-                <ActivationsTag
-                    activations={[
-                        " scheduled reporting, modifying campaign budget in real time and more.Follow Us↵↵Timberwood Park, San Antonio, Texas↵↵Nestled in the foothills of the Texas Hill Country in San Antonio, Timberwood Park offers its residents the kind of views and peaceful calm that only nature can provide. Upon easily accessing this North-Central community from Blanco, Borgfeld, and Canyon Golf roads, its easy to see why this 2,200 acre custom home development is the ideal location. Commuting, shopping, and medical services are just around the corner with Loop 1604 just 5 short miles away, and Hwy",
-                        " and warranty information are all just a click away.Savoy, Texas -- Savoy ISD has named Mr. Danny Henderson as the new Principal of Savoy Elementary. Mr. Henderson was selected from over 80 applicants and was approved unanimously by the Savoy Board of Trustees.↵↵Danny Henderson↵↵Mr. Henderson has 13 years of administrative experience in Blue Ridge and in Pottsboro. Although his duties officially begin next school year, he will be visiting with staff at a get to know you meeting soon.Pharyngeal plexus (venous)↵↵The pharyngeal plexus (venous) is a network of veins beginning in the ph",
-                        " are reporting from the Rio Grande Valley, both sides of the border, based in McAllen, Texas.↵↵Upcoming stories:↵↵Finding shelter. Many"
-                    ]}
-                    handleFinalSubmit={handleFinalSubmit}
-                />
-            :step==="done"?
-                <DoneTag/>
+            {feature?
+                step==="turnstile"?
+                    <TurnstileTag/>
+                :step==="logits"?
+                    <LogitsTag 
+                        logits={feature?.logits} 
+                        setLogitsAnswer={setLogitsAnswer} 
+                    />
+                :step==="activations"?
+                    <ActivationsTag
+                        activations={feature?.activations}
+                        handleFinalSubmit={handleFinalSubmit}
+                    />
+                :step==="done"?
+                    <DoneTag/>
+                :
+                    <></>
             :
                 <></>
             }
+            
         </>
     )
 }

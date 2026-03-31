@@ -20,29 +20,11 @@ from neuronpedia_autointerp_client.models.score_embedding_post_request import (
 from neuronpedia_autointerp_client.models.score_fuzz_detection_post_request import (
     ScoreFuzzDetectionPostRequest,
 )
-from sentence_transformers import SentenceTransformer
-
 from neuronpedia_autointerp.routes.explain.default import explain_default
 from neuronpedia_autointerp.routes.score.embedding import generate_score_embedding
 from neuronpedia_autointerp.routes.score.fuzz_detection import (
     generate_score_fuzz_detection,
 )
-
-from autogenerate import (
-    AutoGenerateRequest,
-    generate_auto_generate,
-)
-from filter import (
-    FilterRequest,
-    generate_filter,
-)
-from cluster import (
-    ClusterRequest,
-    generate_cluster,
-)
-import psycopg2
-import state
-from contextlib import asynccontextmanager
 
 VERSION_PREFIX_PATH = "/v1"
 
@@ -118,33 +100,6 @@ async def score_embedding_endpoint(request: ScoreEmbeddingPostRequest):
 async def score_fuzz_detection_endpoint(request: ScoreFuzzDetectionPostRequest):
     print("Score Fuzz Detection Called")
     return await generate_score_fuzz_detection(request)
-
-@router.post("/auto_generate")
-async def auto_generate_endpoint(request: AutoGenerateRequest):
-    print("Auto Generate Called")
-    return await generate_auto_generate(request)
-
-@router.post("/filter")
-async def auto_generate_endpoint(request: FilterRequest):
-    print("Filter Called")
-    return await generate_filter(request)
-
-@router.post("/cluster")
-async def cluster_endpoint(request: ClusterRequest):
-    print("Cluster Called")
-    return await generate_cluster(request)
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    state.sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
-    state.db_pool = psycopg2.pool.ThreadedConnectionPool(
-        minconn=2,
-        maxconn=10,
-        dsn=DATABSE_URL
-    )
-    yield
-    state.db_pool.closeall()
-
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)

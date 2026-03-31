@@ -1017,3 +1017,22 @@ enum Visibility {
   UNLISTED
   PRIVATE
 }
+
+
+model Captcha {
+  id                Int     @id @default(autoincrement())
+  modelId           String
+  layer             String
+  index             Int
+  logitsAnswer      String?
+  activationsType   String?
+  activationsAnswer String?
+  tokens            CaptchaToken[]
+}
+
+model CaptchaToken {
+  token     String   @id @default(uuid())
+  captchaId Int
+  expiresAt DateTime
+  captcha   Captcha  @relation(fields: [captchaId], references: [id])
+}

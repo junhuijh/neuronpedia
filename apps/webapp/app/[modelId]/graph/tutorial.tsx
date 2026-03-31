@@ -7,6 +7,9 @@ import { useGraphModalContext } from "@/components/provider/graph-modal-provider
 import UAE from "@/components/tutorial/UAE.png"
 import CLT from "@/components/tutorial/CLT.png"
 import Tutorial from "@/components/tutorial/Tutorial.png"
+import LinkGraphGif from "@/components/tutorial/LinkGraph.gif"
+import NodeConnectionsGif from "@/components/tutorial/NodeConnections.gif"
+
 
 export default function GraphTutorial({
     showTutorial
@@ -14,9 +17,15 @@ export default function GraphTutorial({
     showTutorial:boolean
 }){
     const { isTutorialModalOpen, setIsTutorialModalOpen } = useGraphModalContext();
-    function Token({token}:{token:string}){
+    function Token({
+        token,
+        colourString = "bg-slate-100"
+    }:{
+        token:string,
+        colourString?:string 
+    }){
         return(
-            <span className="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-300 text-slate-800 text-sm font-mono mx-0.5">
+            <span className={`inline-block px-2 py-0.5 rounded  border border-slate-300 text-slate-800 text-sm font-mono mx-0.5 ${colourString}`}>
                 {token}
             </span>
         )
@@ -377,6 +386,51 @@ export default function GraphTutorial({
         )
     }
 
+    const LLMRepeat = () => {
+        const sequences = [
+            ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is"],
+            ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is", "UAE"],
+            ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is", "UAE", "."],
+            ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is", "UAE", ".", "<|endoftext|>"],
+        ]
+        
+        const [seqIndex, setSeqIndex] = useState(0)
+        const [tokenCount, setTokenCount] = useState(sequences[0].length)
+
+        useEffect(() => {
+            const currentSeq = sequences[seqIndex]
+            
+            if (tokenCount < currentSeq.length) {
+                const t = setTimeout(() => setTokenCount(tokenCount + 1), 400)
+                return () => clearTimeout(t)
+            } else {
+                const t = setTimeout(() => {
+                    const next = (seqIndex + 1) % sequences.length
+                    setSeqIndex(next)
+                    setTokenCount(sequences[next].length - 1)
+                }, 1000)
+                return () => clearTimeout(t)
+            }
+        }, [seqIndex, tokenCount])
+
+        const currentTokens = sequences[seqIndex].slice(0, tokenCount)
+        const nextToken = sequences[seqIndex][tokenCount]
+        
+        return (
+            <div className="flex flex-wrap gap-1 my-4 items-center">
+                {currentTokens.map((token, i) => (
+                    <Token key={i} token={token} />
+                ))}
+                {nextToken && (
+                    <span className="flex items-center gap-1">
+                        <span className="text-slate-400">→</span>
+                        <Token token={nextToken} colourString="bg-green-100 border-green-300" />
+                    </span>
+                )}
+            </div>
+        )
+    }
+
     const SAEStep = () => {
         return (
             <div className="flex items-center gap-x-3 my-3 justify-center flex-wrap">
@@ -422,6 +476,18 @@ export default function GraphTutorial({
                     <span className="text-xs text-slate-400">≈ original</span>
                 </div>
 
+            </div>
+        )
+    }
+
+    const FeatureDetails = ()=>{
+        return(
+            <div className="w-full flex justify-center">
+                <Token token="Activations"/>
+                →
+                <Token token="Auto-interpret LLM"/>
+                →
+                <Token token="Labels"/>
             </div>
         )
     }
@@ -475,28 +541,34 @@ export default function GraphTutorial({
             title: "Tokens",
             description:(
                 <div>
-                    <p>When you type a sentence into an LLM, it breaks your text into small pieces called tokens.</p>
+                    <p>When you type a sentence into an LLM, it breaks your text into small pieces called <strong>tokens</strong>.</p>
+                    <div className="w-full flex justify-center">
+                        <Token token={"Unbelievable"}/>→
+                        <Token token={"Un"} colourString="bg-red-100"/>
+                        <Token token={"believ"}/>
+                        <Token token={"able"} colourString="bg-purple-100"/>
+                    </div>
                     <Space/>
                     <p>Why not just use words?</p>
                     <Space/>
                     <p>There are hundreds of thousands of words in just the English language alone. In a model that supports multiple language, there would simply be too many words for the model to memorize. Tokens solve this issue as they can be reused to form the different words.</p>
                     <Space/>
                     <p>Tokens solve this issue as they can be reused to form the different words.</p>
-                    <div className="flex gap-x-2">
+                    <div className="w-full flex justify-center gap-x-2">
                         <div>
-                            <Token token={"Un"}/>
+                            <Token token={"Un"} colourString="bg-red-100"/>
                             <Token token={"believ"}/>
-                            <Token token={"able"}/>
+                            <Token token={"able"} colourString="bg-purple-100"/>
                         </div>
 
                         <div>
-                            <Token token={"C"}/>
-                            <Token token={"able"}/>
+                            <Token token={"C"} colourString="bg-blue-100"/>
+                            <Token token={"able"} colourString="bg-purple-100"/>
                         </div>
 
                         <div>
-                            <Token token={"Un"}/>
-                            <Token token={"iverse"}/>
+                            <Token token={"Un"} colourString="bg-red-100"/>
+                            <Token token={"iverse"} colourString="bg-green-100"/>
                         </div>
                     </div>
                 </div>
@@ -508,6 +580,7 @@ export default function GraphTutorial({
             description:(
                 <div>
                     <p>Tokens are still language, which computers do not understand language. So each token gets converted into a list of numbers called an <strong>embedding</strong>.</p>
+                    <Space/>
                     <p>Why numbers? Computers are extremely good at doing math with numbers.</p>
                     <div className="flex items-center gap-4 my-4">
                         <Token token="Chick"/>
@@ -544,8 +617,8 @@ export default function GraphTutorial({
                     <p>A Transformer is made of matrices (2 dimensional vectors) stacked on top of each other in layers.</p>
                     <Space/>
                     <p>There are 2 main components of a Transformer layer:</p>
-                    <p className="mx-1">1. Attention layer</p>
-                    <p className="mx-1">2. MLP layer</p>
+                    <p className="mx-1"><strong>1. Attention layer</strong></p>
+                    <p className="mx-1"><strong>2. MLP layer</strong></p>
                 </div>
                 ),
             placement:"center"
@@ -564,7 +637,7 @@ export default function GraphTutorial({
             title: "The Attention Layer",
             description:(
                 <div>
-                    <p>The way a token listens can be describe as asking questions.</p>
+                    <p>The way a token listens can be described as asking questions.</p>
                     <p>For example:</p>
                     <p className="mx-1">- The token "tallest" might ask: "Who am I referring to?"</p>
                     <p className="mx-1">- The token "car" might ask: "What is my colour?"</p>
@@ -623,7 +696,10 @@ export default function GraphTutorial({
             description:(
                 <div>
                     <p>The final layer of the LLM has an extra job to do, which is to ask "Given everything we now know, what is the most probable next token?".</p>
-                    <p>To answer that, the model takes the final token's vector and dot products it with the unembedding matrix, to obtain a score for every token in the model's vocabulary.</p>
+                    <Space/>
+                    <p>To answer that, the model takes the final token's vector and dot products it with the <strong>unembedding matrix</strong>, to obtain a score for every token in the model's vocabulary.</p>
+                    <Space/>
+                    <p>This is akin to holding information about an unknown fruit and comparing it against all the fruits that you know and giving them a score.</p>
                     <UnembeddingStep/>
                 </div>
                 ),
@@ -633,7 +709,7 @@ export default function GraphTutorial({
             title: "LLM",
             description:(
                 <div>
-                    <p>These scores are then normalized into probabilities using a function called SoftMax, which ensures all probabilities add up to 100%.</p>
+                    <p>A function, <strong>SoftMax</strong>, is then used to convert the raw scores into percentages that add up to 100%, so we can treat them as <strong>probabilities</strong>.</p>
                     <SoftMaxStep/>
                 </div>
                 ),
@@ -672,23 +748,7 @@ export default function GraphTutorial({
                         <Token token={"<|endoftext|>"}/>
                         {"which signals that the response is complete and to stop generating."}
                     </p>
-                    <div>
-                        <Token token={"The"}/>
-                        <Token token={"country"}/>
-                        <Token token={"that"}/>
-                        <Token token={"has"}/>
-                        <Token token={"the"}/>
-                        <Token token={"tallest"}/>
-                        <Token token={"building"}/>
-                        <Token token={"in"}/>
-                        <Token token={"the"}/>
-                        <Token token={"world"}/>
-                        <Token token={"is"}/>
-                        <Token token={"UAE"}/>
-                        <Token token={"."}/>
-                        <span className="text-slate-400 text-lg">→</span>
-                        <Token token={"<|endoftext|>"}/>
-                    </div>
+                    <LLMRepeat/>
                 </div>
                 ),
             placement:"center"
@@ -722,7 +782,7 @@ export default function GraphTutorial({
                     <Space/>
                     <p>Then, using only those few fired neurons, it decodes to reconstruct the original input as accurately as possible.</p>
                     <SAEStep/>
-                    <p>Because only a small number of neurons are allowed to fire, each one is forced to stand for something specific. These are called features.</p>
+                    <p>Because only a small number of neurons are allowed to fire, each one is forced to stand for something specific. These are called <strong>features</strong>.</p>
                 </div>
             ),
             placement:"center"
@@ -809,8 +869,8 @@ export default function GraphTutorial({
                 <div>
                     <p>Here we have some metrics of the selected node.</p>
                     <Space/>
-                    <p>Negative logits - ?</p>
-                    <p>Positive logits - ?</p>
+                    <p>Negative logits - The output tokens this feature least strongly promotes</p>
+                    <p>Positive logits - The output tokens this feature most strongly promotes</p>
                     <p>Activation Density - Out of all the tokens in our test dataset, what % of them caused this feature to fire</p>
                     <p>Top Graph - Histogram of how strongly the feature fired when it did fire.</p>
                     <p>Bottom Graph - Histogram of how much this feature contributed to each token in the model's vocabulary</p>
@@ -837,6 +897,7 @@ export default function GraphTutorial({
             description: (
                 <div>
                     <p>These activations are what is used to derive the label of the node. In fact, they are passed to an auto interpret LLM which reads through all the contexts, extract common pattern, and returns a human-readable label.</p>
+                    <FeatureDetails/>
                 </div>
             ),
             arrow:true,
@@ -872,7 +933,13 @@ export default function GraphTutorial({
                     <p><Token token="Ctrl"/> + <Token token="Click"/> the most probable output (top right output node) to add it to the subgraph.</p>
                     <Space/>
                     <p><Token token="Click"/> on it again so we can see the input features of the output node.</p>
-                    ADD GIF
+                    <div className="w-full flex justify-center">
+                        <img 
+                            src={LinkGraphGif.src} 
+                            alt="LinkGraphGif" 
+                            className="w-[30%] rounded-lg" 
+                        />
+                    </div>
                 </div>
             ),
             arrow:true,
@@ -883,10 +950,16 @@ export default function GraphTutorial({
             title: "Choose 3 input features",
             description: (
                 <div>
-                    <p>We then pick the top 3 inputs that influenced it and add them to the subgraph using <Token token="Ctrl"/> + <Token token="Click"/></p>
-                    <Space/>
+                    <p>We then pick the top 3 inputs <strong>features</strong> that influenced it and add them to the subgraph using <Token token="Ctrl"/> + <Token token="Click"/>.</p>
+                    <div className="w-full flex justify-center">
+                        <img 
+                            src={NodeConnectionsGif.src} 
+                            alt="NodeConnectionsGif" 
+                            className="w-[70%]"
+                            style={{ clipPath: "inset(0 5px 0 5px)" }}
+                        />
+                    </div>
                     <p>3 is chosen simply for demonstration purposes, you are allowed to choose any number you like.</p>
-                    ADD GIF
                 </div>
             ),
             arrow:true,
@@ -911,7 +984,7 @@ export default function GraphTutorial({
             title: "Repeat this process",
             description: (
                 <div>
-                    <p>Repeat this process 3 more times.</p>
+                    <p>Repeat this process 1 more times.</p>
                 </div>
             ),
             arrow:true,
@@ -922,13 +995,24 @@ export default function GraphTutorial({
             title: "Grouping",
             description: (
                 <div>
-                    <p>By now you should notice there are many nodes with similar labels (give example)</p>
+                    <p>By now you should notice there are many nodes with similar labels</p>
+                    <p>For example <strong>"Texas", "Texas legal documents"</strong></p>
+                    <Space/>
                     <p>We can group the related nodes to make the subgraph easier to read</p>
-                    <Space/>
+                </div>
+            ),
+            arrow:true,
+            target: () => document.querySelector('.subgraph') as HTMLElement,
+            placement:"bottom"
+        },
+        {
+            title: "Grouping",
+            description: (
+                <div>
                     <p>Hold <Token token="g"/> and click the nodes you want to group.</p>
-                    <p>Releasing <Token token="g"/> creates the supernode.</p>
+                    <p>Releasing <Token token="g"/> creates the <strong>supernode</strong>.</p>
                     <Space/>
-                    <p>Double-click a supernode's label to rename it.</p>
+                    <p><Token token="Double-click"/> a supernode's label to rename it.</p>
                 </div>
             ),
             arrow:true,

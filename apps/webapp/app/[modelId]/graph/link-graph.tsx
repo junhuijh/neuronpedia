@@ -184,10 +184,6 @@ export default function LinkGraph() {
     lastColoredGraphSlugRef.current = slug;
   }, [selectedGraph]);
 
-  useEffect(() => {
-    lastColoredGraphSlugRef.current = null;
-  }, [visState.viewMode]);
-
   function distance(x1: number, y1: number, x2: number, y2: number) {
     return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
   }
@@ -780,7 +776,7 @@ export default function LinkGraph() {
         return nodes.filter((node) => node.node_id && keepSet.has(node.node_id));
       }
       try {
-        const response = await fetch(`http://${FYP_SERVER}/fyp/cluster`,{
+        const response = await fetch(`${FYP_SERVER}/fyp/cluster`,{
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1103,9 +1099,7 @@ export default function LinkGraph() {
       .attr('opacity', (d) => (d.feature_type === 'mlp reconstruction error' ? 0.35 : 1))
       .attr('font-family', 'Arial')
       .attr('font-size', (d) => featureTypeToTextSize(isMobile, d.feature_type)) // weird safari mobile bug where it renders the diamond too large
-      .attr('fill', (d) => visState.viewMode === 'activation' 
-        ? d.nodeActivationColor || '#000'
-        : d.nodeColor || '#000')
+      .attr('fill', (d) => d.nodeColor || '#000')
       .attr('stroke', '#000')
       .attr('stroke-width', 2)
       .attr('text-anchor', 'middle')
@@ -1151,7 +1145,6 @@ export default function LinkGraph() {
     // Style nodes based on their tmp clicked link
     nodeSel
       .attr('fill', (d) => {
-        if (visState.viewMode === 'activation') return d.nodeActivationColor || '#000';
         return d.tmpClickedLink
           ? d.tmpClickedLink.pctInputColor || d.nodeColor || '#000'
           : d.nodeColor || '#000';
@@ -1341,7 +1334,6 @@ export default function LinkGraph() {
     visState.linkType,
     visState.pinnedIds,
     visState.subgraph,
-    visState.viewMode,
     visState.clusteredMode,
     clusteredNodeIds,
     allowScroll,

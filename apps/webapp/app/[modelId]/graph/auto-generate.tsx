@@ -369,7 +369,7 @@ export default function AutoGenerateButton({
         });
     
         // Call API
-        const response = await fetch(`http://${FYP_SERVER}/fyp/auto_generate`, {
+        const response = await fetch(`${FYP_SERVER}/fyp/auto_generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

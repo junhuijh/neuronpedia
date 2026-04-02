@@ -43,11 +43,10 @@ export default function CaptchaPage() {
     const [logitsAnswer, setLogitsAnswer] = useState<string| null>("")
 
     const CLOUDFLAREPUBLICKEY = "0x4AAAAAACxnUXZIOHnu00wa"
-
     useEffect(() => {
         // cloudflare turnstile
         window.handleTurnstileSuccess = (token: string) => {
-            fetch(`http://${FYP_SERVER}/fyp/verify_turnstile`, {
+            fetch(`${FYP_SERVER}/fyp/verify_turnstile`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -62,7 +61,7 @@ export default function CaptchaPage() {
             })
         }
         // Fetch random feature from the database
-        fetch(`http://${FYP_SERVER}/fyp/random_feature`, {
+        fetch(`${FYP_SERVER}/fyp/random_feature`, {
             method: "GET"
         })
         .then(async(response) => {
@@ -74,7 +73,7 @@ export default function CaptchaPage() {
 
 
     const handleFinalSubmit = async (values: ActivationsForm) => {
-        const response = await fetch(`http://${FYP_SERVER}/fyp/save_captcha`, {
+        const response = await fetch(`${FYP_SERVER}/fyp/save_captcha`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

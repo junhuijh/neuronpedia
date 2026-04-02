@@ -233,7 +233,6 @@ export function GraphProvider({
 
     densityThreshold: 1,
 
-    viewMode:"attribution",
     clusteredMode:false
   });
 

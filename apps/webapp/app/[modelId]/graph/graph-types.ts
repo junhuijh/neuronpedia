@@ -49,7 +49,6 @@ export type CltVisState = {
   // only for neuronpedia dashboards
   densityThreshold?: number;
 
-  viewMode?: 'attribution' | 'activation';
   clusteredMode?: boolean;
 };
 

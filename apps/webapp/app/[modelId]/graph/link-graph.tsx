@@ -122,6 +122,7 @@ export default function LinkGraph() {
   const [allowScroll, setAllowScroll] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [clusteredNodeIds, setClusteredNodeIds] = useState<Set<string> | null>(null);
+  const [clustering, setClustering] = useState<boolean>(false);
   const canvasRefs = useRef<Array<HTMLCanvasElement | null>>([null, null, null, null, null]);
   const { visState, selectedGraph, updateVisStateField, togglePin, isEditingLabel, makeTooltipText } =
     useGraphContext();
@@ -721,6 +722,7 @@ export default function LinkGraph() {
     if (clusteredNodeIds && clusteredNodeIds.size>=0) return;
     // Cluster by semantic similarity within layer and ctx
     const cluster = async () => {
+      setClustering(true)
       const logitsEmbeddingsNodes: CLTGraphNode[] = []
       const layerCtxMap = new Map<string, string[]>();
       selectedGraph.nodes.forEach((node)=>{
@@ -796,6 +798,7 @@ export default function LinkGraph() {
         setClusteredNodeIds(new Set(clustered.map((n) => n.node_id).filter(Boolean) as string[]))
       } catch (error) {
       }
+      setClustering(false)
     }
     cluster();
 }, [selectedGraph, visState.clusteredMode]);
@@ -1356,6 +1359,7 @@ export default function LinkGraph() {
   return (
     <>
       {/* Backdrop for dismissing overlay on background click */}
+      
       {isExpanded && (
         <div
           className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm"
@@ -1405,6 +1409,13 @@ export default function LinkGraph() {
           </div>
         </CustomTooltip>
       </div> */}
+
+      {visState.clusteredMode && clustering && (
+        <div className="absolute inset-0 z-[9999] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-500 mb-3" />
+          <p className="text-sm text-slate-500">Clustering...</p>
+        </div>
+      )}
 
       <GraphControls
         selectedGraph={selectedGraph}

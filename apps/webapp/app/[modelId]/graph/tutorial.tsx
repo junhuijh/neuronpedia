@@ -499,12 +499,9 @@ export default function GraphTutorial({
     useEffect(() => {
         if (showTutorial) {
             try {
-                const hasVisited = localStorage.getItem('circuit-tracer-visited');
-                if (hasVisited) {
-                    const hasToured = localStorage.getItem('circuit-tracer-tour-visited');
-                    if (hasToured) {
-                        setIsTutorialModalOpen(true);
-                    }
+                const hasToured = localStorage.getItem('circuit-tracer-tour-visited');
+                if (!hasToured) {
+                    setIsTutorialModalOpen(true);
                 }
             } catch (e) {
 

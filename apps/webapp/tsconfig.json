@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["node"],
     "target": "es2021",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -32,6 +33,7 @@
     "downlevelIteration": true,
     "typeRoots": ["./types", "./node_modules/@types"]
   },
+  "ignoreDeprecations": "6.0",
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "middleware.ts"],
   "exclude": ["node_modules"]
 }

@@ -66,7 +66,7 @@ export default function SpeedAddButton({
                 ...selectedGraph.nodes
                     .filter(node => {
                         if (node.nodeId && currentPinnedIds.has(node.nodeId)) return false
-                        return getName(node)?.toLowerCase().includes(query.value.toLowerCase())
+                        return getName(node)?.toLowerCase().split(" ").includes(query.value.toLowerCase())
                     })
                     .map(node => node.nodeId)
                     .filter((id): id is string => id !== undefined)

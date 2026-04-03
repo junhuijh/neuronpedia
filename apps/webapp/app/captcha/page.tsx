@@ -95,7 +95,7 @@ export default function CaptchaPage() {
 
     function TurnstileTag(){
         return (
-            <div>
+            <div className="w-full h-full flex items-center justify-center">
                 <Script 
                     src="https://challenges.cloudflare.com/turnstile/v0/api.js" 
                     async 
@@ -133,7 +133,7 @@ export default function CaptchaPage() {
         return (
             <form onSubmit={form.handleSubmit(handleSubmit)}>
                 <div
-                    className="flex flex-col gap-y-2 text-center w-[400px]"
+                    className="flex flex-col gap-y-2 text-center w-[400px] px-1 py-2"
                 >
                     <div
                         className=""
@@ -167,7 +167,7 @@ export default function CaptchaPage() {
                             {form.formState.errors.logitAnswer.message}
                         </div>
                     )}
-                    <div className="flex items-center gap-x-2">
+                    <div className="flex items-center gap-x-2 pl-1">
                         <input
                             type="checkbox"
                             {...form.register("logitSkip")}
@@ -227,6 +227,7 @@ export default function CaptchaPage() {
                     w-full border border-slate-400 rounded-md p-2 cursor-pointer text-xs flex flex-row 
                     ${expanded ? "flex-wrap" : "overflow-x-auto whitespace-nowrap"}
                 `}
+                style={{scrollbarWidth: 'none'}}
                 onClick={() => setExpanded(!expanded)}
             >
                 {activation.tokens.map((token, i) => (
@@ -263,7 +264,13 @@ export default function CaptchaPage() {
             handleFinalSubmit(values)
         }
         return (
-            <div className="flex flex-col gap-y-2 w-[400px] text-center">
+            <div 
+                className="flex flex-col gap-y-2 w-[400px] px-1 py-3 h-[600px] text-center overflow-y-auto" 
+                style={{ 
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#cbd5e1 transparent'
+                }}
+            >
                 <div>What is the similarity among these passages?</div>
                 {subStep==="type"?
                     <div className="text-sm text-gray-500 text-left">
@@ -283,74 +290,73 @@ export default function CaptchaPage() {
                         )
                     })}
                 </div>
-                {subStep==="type"?
-                    <>
-                        <div className="grid grid-cols-2 gap-3">
-                            <div 
-                                className="aspect-square border rounded-lg border-slate-500 flex items-center justify-center cursor-pointer hover:bg-slate-500 hover:text-white transition-all"
+                <form onSubmit={form.handleSubmit(handleSubmit)}>
+                    {subStep==="type"?
+                        <>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div 
+                                    className="aspect-square border rounded-lg border-slate-500 flex items-center justify-center cursor-pointer hover:bg-slate-500 hover:text-white transition-all"
+                                    onClick={()=>{
+                                        form.setValue("activationsType","focus")
+                                        setSubStep("answer")
+                                    }}
+                                >
+                                    Focus Word
+                                </div>
+                                <div 
+                                    className="aspect-square border rounded-lg border-slate-500 flex items-center justify-center cursor-pointer hover:bg-slate-500 hover:text-white transition-all"
+                                    onClick={()=>{
+                                        form.setValue("activationsType","context")
+                                        setSubStep("answer")
+                                    }}
+                                >
+                                    Context
+                                </div>
+                            </div>
+                            <Button
+                                className="w-full bg-slate-400 hover:bg-slate-600"
+                                type="button"
                                 onClick={()=>{
-                                    form.setValue("activationsType","focus")
-                                    setSubStep("answer")
+                                    form.setValue("activationsSkip", true)
+                                    handleSubmit(form.getValues())
                                 }}
                             >
-                                Focus Word
-                            </div>
-                            <div 
-                                className="aspect-square border rounded-lg border-slate-500 flex items-center justify-center cursor-pointer hover:bg-slate-500 hover:text-white transition-all"
-                                onClick={()=>{
-                                    form.setValue("activationsType","context")
-                                    setSubStep("answer")
-                                }}
-                            >
-                                Context
-                            </div>
-                        </div>
-                        <Button
-                            className="w-full bg-slate-400 hover:bg-slate-600"
-                            type="button"
-                            onClick={()=>{
-                                form.setValue("activationsSkip", true)
-                                handleSubmit(form.getValues())
-                            }}
-                        >
-                            No Similarity
-                        </Button>
-                    </>
-                :subStep==="answer"?
-                    <>
-                        <Input
-                            placeholder="e.g. location, city names, law"
-                            className=""
-                            disabled={form.watch("activationsSkip")}
-                            {...form.register("activationsAnswer", {
-                                validate: (val)=> val.length > 0 || "Please enter an answer or check \"No similarity\""
-                            })}
-                        />
-                        {form.formState.errors.activationsAnswer && (
-                            <div className="text-red-500 text-sm">
-                                {form.formState.errors.activationsAnswer.message}
-                            </div>
-                        )}
-                        <div className="flex items-center gap-x-2">
-                            <input
-                                type="checkbox"
-                                {...form.register("activationsSkip")}
+                                No Similarity
+                            </Button>
+                        </>
+                    :subStep==="answer"?
+                        <>
+                            <Input
+                                placeholder="e.g. location, city names, law"
+                                className="px-1"
+                                disabled={form.watch("activationsSkip")}
+                                {...form.register("activationsAnswer", {
+                                    validate: (val)=> form.getValues("activationsSkip") || val.length > 0 || "Please enter an answer or check \"No similarity\""
+                                })}
                             />
-                            <span>No similarity</span>
-                        </div>
-                        <Button
-                            className="w-full bg-slate-400 hover:bg-slate-600"
-                            type="submit"
-                            onClick={()=>{
-                                handleSubmit(form.getValues())
-                            }}
-                        >
-                            Submit
-                        </Button>
-                    </>
-                :
-                    <></>
-                }
+                            {form.formState.errors.activationsAnswer && (
+                                <div className="text-red-500 text-sm">
+                                    {form.formState.errors.activationsAnswer.message}
+                                </div>
+                            )}
+                            <div className="flex items-center gap-x-2 pl-1">
+                                <input
+                                    type="checkbox"
+                                    {...form.register("activationsSkip")}
+                                />
+                                <span>No similarity</span>
+                            </div>
+                            <Button
+                                className="w-full bg-slate-400 hover:bg-slate-600"
+                                type="submit"
+                            >
+                                Submit
+                            </Button>
+                        </>
+                    :
+                        <></>
+                    }
+                </form>
                 
             </div>
         )
@@ -364,7 +370,7 @@ export default function CaptchaPage() {
     }
 
     return(
-        <>
+        <div className="w-full h-full flex items-center justify-center">
             {feature?
                 step==="turnstile"?
                     <TurnstileTag/>
@@ -386,6 +392,6 @@ export default function CaptchaPage() {
                 <></>
             }
             
-        </>
+        </div>
     )
 }

@@ -14,15 +14,18 @@ export default function Page(){
     }, [])
 
     return (
-        <>
-            <iframe 
-                src="http://localhost:3000/captcha?embed=true"
-                width={400}
-                height={600}
-            />
+        <div className="flex w-full h-full items-center justify-center">
+            {!success && (
+                <iframe 
+                    className=""
+                    src="http://localhost:3000/captcha?embed=true"
+                    width={400}
+                    height={600}
+                />
+            )}
             {success && (
                 <div>YOU CAN NOW SEE THE PAGE</div>
             )}
-        </>
+        </div>
     )
 }

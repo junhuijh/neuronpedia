@@ -1091,25 +1091,6 @@ export default function GraphTutorial({
             }
         },
         {
-            title: "Speed Add",
-            description: (
-                <div>
-                    <p>
-                        This feature adds all nodes whose labels contain any of the user-specified keywords as a substring.
-                    </p>
-                    <p>
-                        For example, entering "Texas" would add all nodes whose label contains the word "Texas".
-                    </p>
-                </div>
-            ),
-            arrow:true,
-            target: () => document.querySelector('.speed-add-button') as HTMLElement,
-            placement:"leftBottom",
-            styles: {
-                root: { transform: 'translateY(-200px)' }
-            }
-        },
-        {
             title: "Auto Generate",
             description: (
                 <div>
@@ -1164,6 +1145,25 @@ export default function GraphTutorial({
             ),
             arrow:true,
             target: () => document.querySelector('.auto-generate-button') as HTMLElement,
+            placement:"leftBottom",
+            styles: {
+                root: { transform: 'translateY(-200px)' }
+            }
+        },
+        {
+            title: "Speed Add",
+            description: (
+                <div>
+                    <p>
+                        This feature adds all nodes whose labels contain any of the user-specified keywords as a substring.
+                    </p>
+                    <p>
+                        For example, entering "Texas" would add all nodes whose label contains the word "Texas".
+                    </p>
+                </div>
+            ),
+            arrow:true,
+            target: () => document.querySelector('.speed-add-button') as HTMLElement,
             placement:"leftBottom",
             styles: {
                 root: { transform: 'translateY(-200px)' }

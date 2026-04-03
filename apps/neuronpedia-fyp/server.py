@@ -14,6 +14,10 @@ from autogenerate import (
     AutoGenerateRequest,
     generate_auto_generate,
 )
+from seeds import (
+    SeedsRequest,
+    generate_seeds
+)
 from filter import (
     FilterRequest,
     generate_filter,
@@ -62,6 +66,11 @@ async def auto_generate_endpoint(request: AutoGenerateRequest):
     print("Auto Generate Called")
     return await generate_auto_generate(request)
 
+@router.post("/seeds")
+async def verify_captcha_endpoint(request: SeedsRequest):
+    print("Seeds Called")
+    return await generate_seeds(request)
+
 @router.post("/filter")
 async def auto_generate_endpoint(request: FilterRequest):
     print("Filter Called")
@@ -71,6 +80,7 @@ async def auto_generate_endpoint(request: FilterRequest):
 async def cluster_endpoint(request: ClusterRequest):
     print("Cluster Called")
     return await generate_cluster(request)
+
 
 
 @router.post("/verify_turnstile")
@@ -92,6 +102,8 @@ async def save_captcha_endpoint(request: SaveCaptchaRequest):
 async def verify_captcha_endpoint(request: VerifyCaptchaRequest):
     print("Verify Captcha Called")
     return await generate_verify_captcha(request)
+
+
 
 
 

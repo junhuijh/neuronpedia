@@ -33,8 +33,11 @@ class AutoGenerateResponse(BaseModel):
     group_names: list[str]
 
 async def generate_auto_generate(request: AutoGenerateRequest):
+    # Max number of subgraph nodes to prevent crashing
+    MAX_SUBGRAPH_NODES = 150
     try:
         total = len(request.newPinned.values())
+        print(f"Total: {total}")
         max_votes_per_node = request.max_votes_per_node
         min_similarity_vote = request.min_similarity_vote
         min_similarity_group = request.min_similarity_group
@@ -133,6 +136,16 @@ async def generate_auto_generate(request: AutoGenerateRequest):
         for node_id in to_prune:
             request.newPinned.pop(node_id)
 
+        if len(request.newPinned) > MAX_SUBGRAPH_NODES:
+            sorted_nodes = sorted(
+                request.newPinned.values(),
+                key=lambda n: sum(n["votes"].values()),
+                reverse=True
+            )
+            keep_ids = {node["node_id"] for node in sorted_nodes[:MAX_SUBGRAPH_NODES]}
+            request.newPinned = {k: v for k, v in request.newPinned.items() if k in keep_ids}
+            print(f"Capped to {MAX_SUBGRAPH_NODES} nodes")
+
         # Now group them 
         between_nodes = [n for n in request.newPinned.values() if n.feature_type not in ("embedding", "logit")]
         if len(between_nodes)<=2:
@@ -177,7 +190,6 @@ async def generate_auto_generate(request: AutoGenerateRequest):
             group_names = group_names,
             final_pinned_ids = final_pinned_ids, 
             final_pinned=list(request.newPinned.values())
-
         )
     
     except Exception as e:

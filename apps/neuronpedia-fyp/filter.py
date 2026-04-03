@@ -52,6 +52,7 @@ async def generate_filter(request: FilterRequest):
         return FilterResponse(filtered=unique_neurons)
 
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         state.db_pool.putconn(conn)

@@ -18,7 +18,7 @@ export default function Page(){
             {!success && (
                 <iframe 
                     className=""
-                    src="http://localhost:3000/captcha?embed=true"
+                    src={`${process.env.NEXT_PUBLIC_APP_URL}/captcha?embed=true`}
                     width={400}
                     height={600}
                 />

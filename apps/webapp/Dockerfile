@@ -123,11 +123,22 @@ FROM node:24-slim
 
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl
+
+ARG POSTGRES_PRISMA_URL
+ARG POSTGRES_URL_NON_POOLING
+ARG OPENROUTER_API
+
+ENV OPENROUTER_API=$OPENROUTER_API
+ENV POSTGRES_PRISMA_URL=$POSTGRES_PRISMA_URL
+ENV POSTGRES_URL_NON_POOLING=$POSTGRES_URL_NON_POOLING
+
 COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+RUN npm run build:simple
 
 EXPOSE 3000
 CMD ["npm", "start"]

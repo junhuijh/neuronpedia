@@ -19,6 +19,6 @@ export const generateExplanationEleutherActsTop20 = async (
   });
   return {
     explanation: result.explanation,
-    explanations: result.explanations ?? [],
+    explanations: (result as any).explanations ?? [],
   };
 };

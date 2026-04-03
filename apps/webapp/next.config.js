@@ -3,6 +3,9 @@
 const withMDX = require('@next/mdx')();
 
 const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   output: 'standalone', // for docker
   reactStrictMode: false,

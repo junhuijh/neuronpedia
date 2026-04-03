@@ -1,63 +1,69 @@
 import { Button } from "@/components/shadcn/button";
 import { CLTGraph, CLTGraphNode, CltVisState } from "./graph-types";
 import { Plus, Minus, Zap } from 'lucide-react';
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shadcn/dialog';
 import { Input } from "@/components/shadcn/input";
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useGraphModalContext } from "@/components/provider/graph-modal-provider";
 
-export default function SpeedAddButton({
+function SpeedAddModal({
     selectedGraph,
     visState,
     updateVisStateField,
+    isSpeedAddModalOpen,
+    setIsSpeedAddModalOpen,
     getOverrideClerpForNode
-}: {
+}:{
     selectedGraph: CLTGraph | null;
     visState: CltVisState;
     updateVisStateField: <K extends keyof CltVisState>(key: K, value: CltVisState[K]) => void;
+    isSpeedAddModalOpen: boolean
+    setIsSpeedAddModalOpen: (isOpen: boolean) => void
     getOverrideClerpForNode: (node: CLTGraphNode) => string | undefined
+
 }) {
-    const { isSpeedAddModalOpen, setIsSpeedAddModalOpen } = useGraphModalContext();
     type SpeedAddForm = {
-        queries:{value:string}[]
+        queries: { value: string }[]
     }
     const form = useForm<SpeedAddForm>({
         defaultValues: {
             queries: [{ value: '' }]
         }
     })
+
     const { fields, append, remove } = useFieldArray<SpeedAddForm>({
         control: form.control,
         name: 'queries'
     })
 
-    function getName(node:CLTGraphNode){
+    
+    function getName(node: CLTGraphNode) {
         const label = getOverrideClerpForNode(node)
         if (!label) return null
-        if(node.feature_type == "logit"){
+        if (node.feature_type === "logit") {
             return label.replace(/"/g, '').trim().split(' ').at(-2)!
-        }else if(node.feature_type == "embedding"){
+        } else if (node.feature_type === "embedding") {
             return label.trim().replace(/"/g, '').split(/\s+/).pop() || node.clerp
-        }else if(node.feature_type == "mlp reconstruction error"){
+        } else if (node.feature_type === "mlp reconstruction error") {
             return null
         }
         return label
     }
 
-    async function handleSpeedAdd(formValues:SpeedAddForm){
-        if(!selectedGraph) return
+
+    async function handleSpeedAdd(formValues: SpeedAddForm) {
+        if (!selectedGraph) return
         const currentPinnedIds = new Set(visState.pinnedIds);
         const matchingNodesIds = selectedGraph.nodes
-        .filter(node => {
-            if (node.nodeId && currentPinnedIds.has(node.nodeId)) return false
-            const label = getName(node)?.toLowerCase() ?? ''
-            return formValues.queries
-                .filter(query => query.value.trim() !== '')
-                .some(query => label.includes(query.value.toLowerCase()))
-        })
-        .map(node=>node.nodeId)
-        .filter((id): id is string => id !== undefined)
+            .filter(node => {
+                if (node.nodeId && currentPinnedIds.has(node.nodeId)) return false
+                const label = getName(node)?.toLowerCase() ?? ''
+                return formValues.queries
+                    .filter(query => query.value.trim() !== '')
+                    .some(query => label.includes(query.value.toLowerCase()))
+            })
+            .map(node => node.nodeId)
+            .filter((id): id is string => id !== undefined)
 
         const groups = formValues.queries
             .filter(q => q.value.trim() !== '')
@@ -91,77 +97,96 @@ export default function SpeedAddButton({
         append({ value: '' }, { shouldFocus: false });
         setTimeout(() => form.setFocus(`queries.${fields.length}.value`), 50);
     }
-    
 
-    function SpeedAddModal(){
-        return(
-            <Dialog open={isSpeedAddModalOpen} onOpenChange={(value)=>setIsSpeedAddModalOpen(value)}>
-                <DialogContent className="max-w-sm bg-white text-slate-700">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold">
-                            Speed Add
-                        </DialogTitle>
-                    </DialogHeader>
-                    <DialogDescription>
-                        <div>Add words you think would be related</div>
-                    </DialogDescription>
-                    <form 
-                        onSubmit={form.handleSubmit(handleSpeedAdd)}
+    return (
+        <Dialog open={isSpeedAddModalOpen} onOpenChange={(value) => setIsSpeedAddModalOpen(value)}>
+            <DialogContent className="max-w-sm bg-white text-slate-700">
+                <DialogHeader>
+                    <DialogTitle className="text-xl font-bold">
+                        Speed Add
+                    </DialogTitle>
+                </DialogHeader>
+                <DialogDescription>
+                    <div>Add words you think would be related</div>
+                </DialogDescription>
+                <form
+                    onSubmit={form.handleSubmit(handleSpeedAdd)}
+                >
+                    <div
+                        className="flex flex-col gap-y-2"
                     >
-                        <div
-                            className="flex flex-col gap-y-2"
-                        >
-                            {fields.map((field, i) => (
-                                <div key={field.id} className="flex gap-2">
-                                    <Input 
-                                        autoComplete="off"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'g') {
-                                                e.stopPropagation();
-                                            }
-                                        }}
-                                        onKeyUp={(e) => e.stopPropagation()}
-                                        {...form.register(`queries.${i}.value`)} 
-                                        placeholder="e.g. capital" 
-                                    />
-                                    {fields.length > 1 && (
-                                        <button type="button" onClick={() => remove(i)}>
-                                            <Minus 
-                                                className="w-4 h-4 hover:text-red-500" 
-                                                onClick={() => remove(i)}
-                                            />
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                            <div>
-                                <Button
-                                    className="w-full bg-white border-2 border-blue-500 group"
-                                    onClick={handleAppend}
-                                    tabIndex={-1}
-                                >
-                                    <Plus
-                                        className="text-blue-500 group-hover:text-white"
-                                    />
-                                </Button>
+                        {fields.map((field, i) => (
+                            <div key={field.id} className="flex gap-2">
+                                <Input
+                                    autoComplete="off"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'g') {
+                                            e.stopPropagation();
+                                        }
+                                    }}
+                                    onKeyUp={(e) => e.stopPropagation()}
+                                    {...form.register(`queries.${i}.value`)}
+                                    placeholder="e.g. capital"
+                                />
+                                {fields.length > 1 && (
+                                    <button type="button" onClick={() => remove(i)}>
+                                        <Minus
+                                            className="w-4 h-4 hover:text-red-500"
+                                            onClick={() => remove(i)}
+                                        />
+                                    </button>
+                                )}
                             </div>
+                        ))}
+                        <div>
                             <Button
-                                className="w-full"
-                                type="submit"
+                                className="w-full bg-white border-2 border-blue-500 group"
+                                onClick={handleAppend}
+                                tabIndex={-1}
                             >
-                                Submit
+                                <Plus
+                                    className="text-blue-500 group-hover:text-white"
+                                />
                             </Button>
                         </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        )
-    }
+                        <Button
+                            className="w-full"
+                            type="submit"
+                        >
+                            Submit
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
+
+
+export default function SpeedAddButton({
+    selectedGraph,
+    visState,
+    updateVisStateField,
+    getOverrideClerpForNode
+}: {
+    selectedGraph: CLTGraph | null;
+    visState: CltVisState;
+    updateVisStateField: <K extends keyof CltVisState>(key: K, value: CltVisState[K]) => void;
+    getOverrideClerpForNode: (node: CLTGraphNode) => string | undefined
+}) {
+    const { isSpeedAddModalOpen, setIsSpeedAddModalOpen } = useGraphModalContext();
 
     return (
         <>
-            <SpeedAddModal/>
+            <SpeedAddModal 
+                selectedGraph={selectedGraph}
+                visState={visState}
+                updateVisStateField={updateVisStateField}
+                isSpeedAddModalOpen={isSpeedAddModalOpen}
+                setIsSpeedAddModalOpen={setIsSpeedAddModalOpen}
+                getOverrideClerpForNode={getOverrideClerpForNode}
+            />
             <Button
                 variant="outline"
                 size="sm"
@@ -173,7 +198,7 @@ export default function SpeedAddButton({
             >
                 <>
                     <div className="flex flex-row items-center justify-center gap-x-0">
-                    <Zap className="h-3.5 w-3.5" />
+                        <Zap className="h-3.5 w-3.5" />
                     </div>
                     Speed Add
                 </>

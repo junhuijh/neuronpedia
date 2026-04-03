@@ -1,15 +1,15 @@
-version: 'FYP-1'
+version: '3'
 services:
   webapp:
-    build: ./apps/webapp
+    image: junhuigjh/neuronpedia-webapp
     ports:
       - "3000:3000"
-    environment:
-      - FYP_SERVER=http://backend:5010
-    depends_on:
-      - backend
+    env_file:
+      - .env
 
   backend:
-    build: ./apps/neuronpedia-fyp
+    image: junhuigjh/neuronpedia-webapp
     ports:
       - "5010:5010"
+    env_file:
+      - .env

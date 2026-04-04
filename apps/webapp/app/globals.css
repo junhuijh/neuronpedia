@@ -1199,3 +1199,12 @@ foreignObject canvas {
     --highlight: rgba(255, 255, 255, 0.15);
   }
 } */
+
+@keyframes flow {
+  from { stroke-dashoffset: 0 }
+  to { stroke-dashoffset: -14 }
+}
+
+.goalstep-edge {
+  animation: flow 1.5s linear infinite
+}

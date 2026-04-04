@@ -29,6 +29,147 @@ function Token({
         </span>
     )
 }
+type GoalStepNode = {
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+}
+type GoalStepEdge = {
+    from:string,
+    to:string,
+    duration:number,
+}
+
+const GoalStep = () => {
+    const nodeMap: Record<string, GoalStepNode> = {
+        "Austin": { x: 279.32, y: 0, w: 199.354, h: 95 },
+        "Texas": { x: 478.674, y: 200.451, w: 199.355, h: 95 },
+        "Capital": { x: 0, y: 404, w: 199.354, h: 95 },
+        "State containing": { x: 324.221, y: 404, w: 199.355, h: 95 },
+        "Dallas": { x: 679.628, y: 404, w: 199.355, h: 95 },
+    }
+
+    const EDGES: GoalStepEdge[] = [
+        { from: "Capital", to: "Austin", duration: 1 },
+        { from: "Texas", to: "Austin", duration: 1 },
+        { from: "State containing", to: "Texas", duration: 1 },
+        { from: "Dallas", to: "Texas", duration: 1 },
+    ]
+
+    const getCenterX = (node: GoalStepNode) => node.x + node.w / 2
+
+    const getCenterY = (node: GoalStepNode) => node.y + node.h / 2
+
+    return (
+        <svg
+            width="100%"
+            viewBox="0 0 900 520"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ fontFamily: "sans-serif" }}
+        >
+            <defs>
+                <marker
+                    id="arrow"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                >
+                    <path
+                        d="M2 1L8 5L2 9"
+                        fill="none"
+                        stroke="#708090"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                </marker>
+            </defs>
+
+            {EDGES.map((edge, i) => {
+                const from = nodeMap[edge.from]
+                const to = nodeMap[edge.to]
+                return (
+                    <line
+                        key={i}
+                        className="goalstep-edge"
+                        x1={getCenterX(from)} y1={getCenterY(from)}
+                        x2={getCenterX(to)} y2={getCenterY(to)}
+                        stroke="#DEAF10"
+                        strokeWidth="2"
+                        strokeDasharray="8 6"
+                        fill="none"
+                        markerEnd="url(#arrow)"
+                        style={{ animationDuration: `${edge.duration}s` }}
+                    />
+                )
+            })}
+
+            {Object.entries(nodeMap).map((nodeInfo, index) => {
+                const label = nodeInfo[0]
+                const node = nodeInfo[1]
+                const lines = label.split(" ")
+                const nodeCenterX = getCenterX(node)
+                const nodeCenterY = getCenterY(node)
+                return (
+                    <g key={index}>
+                        <rect
+                            x={node.x}
+                            y={node.y}
+                            width={node.w}
+                            height={node.h}
+                            rx="22"
+                            fill="#DEAF10"
+                            stroke="#9C7700"
+                            strokeWidth="1"
+                        />
+                        {lines.length === 1 ?
+                            <text
+                                x={nodeCenterX}
+                                y={nodeCenterY}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize="20"
+                                fontWeight="500"
+                                fill="#00000"
+                            >
+                                {label}
+                            </text>
+                            :
+                            <>
+                                <text
+                                    x={nodeCenterX}
+                                    y={nodeCenterY - 12}
+                                    textAnchor="middle"
+                                    dominantBaseline="central"
+                                    fontSize="20"
+                                    fontWeight="500"
+                                    fill="#00000"
+                                >
+                                    {lines[0]}
+                                </text>
+                                <text
+                                    x={nodeCenterX}
+                                    y={nodeCenterY + 14}
+                                    textAnchor="middle"
+                                    dominantBaseline="central"
+                                    fontSize="20"
+                                    fontWeight="500"
+                                    fill="#00000"
+                                >
+                                    {lines.slice(1).join(" ")}
+                                </text>
+                            </>
+                        }
+                    </g>
+                )
+            })}
+        </svg>
+    )
+}
 
 const EmbeddingSpace = () => {
     const groups = [
@@ -522,11 +663,7 @@ export default function GraphTutorial({
                     <p>{`When answering the question: \"What is the capital of the state containing Dallas?\", `}</p>
                     <p>{`We would first think of the state containing Dallas (Texas), then think of the capital of Texas, Austin.`}</p>
                     <div className="w-full flex flex-col items-center">
-                        <img
-                            src={Austin.src}
-                            alt="Austin"
-                            className="w-[50%]"
-                        />
+                        <GoalStep/>
                     </div>
                     <p>Circuit Tracer traces exactly this chain — showing which concepts led to which, step by step.</p>
                 </div>

@@ -4,7 +4,7 @@ import { Tour } from "antd";
 import type { TourProps } from "antd";
 import { useEffect, useState } from "react"
 import { useGraphModalContext } from "@/components/provider/graph-modal-provider";
-import Austin from "@/components/tutorial/Austin.png"
+import RepeatGif from "@/components/tutorial/Repeat.gif"
 import CLT from "@/components/tutorial/CLT.png"
 import Tutorial from "@/components/tutorial/Tutorial.png"
 import LinkGraphGif from "@/components/tutorial/LinkGraph.gif"
@@ -656,10 +656,10 @@ export default function GraphTutorial({
             placement: "center"
         },
         {
-            title: "Goal",
+            title: "Goal of Circuit Tracer",
             description: (
                 <div>
-                    <p>{`The goal of Circuit Tracer is to create a story of how the LLM came to the final output`}</p>
+                    <p>{`The goal of Circuit Tracer is to create a story of how the Large Language Model (LLM) came to the final output`}</p>
                     <p>{`When answering the question: \"What is the capital of the state containing Dallas?\", `}</p>
                     <p>{`We would first think of the state containing Dallas (Texas), then think of the capital of Texas, Austin.`}</p>
                     <div className="w-full flex flex-col items-center">
@@ -689,7 +689,7 @@ export default function GraphTutorial({
                     <Space />
                     <p>Why not just use words?</p>
                     <Space />
-                    <p>There are hundreds of thousands of words in just the English language alone. In a model that supports multiple language, there would simply be too many words for the model to memorize. Tokens solve this issue as they can be reused to form the different words.</p>
+                    <p>There are hundreds of thousands of words in just the English language alone. In a model that supports multiple language, there would simply be too many words for the model to memorize.</p>
                     <Space />
                     <p>Tokens solve this issue as they can be reused to form the different words.</p>
                     <div className="w-full flex justify-center gap-x-2">
@@ -835,7 +835,7 @@ export default function GraphTutorial({
                 <div>
                     <p>{`The final layer of the LLM has an extra job to do, which is to ask \"Given everything we now know, what is the most probable next token?\".`}</p>
                     <Space />
-                    <p>{`To answer that, the model takes the final token's vector and dot products it with the <strong>unembedding matrix</strong>, to obtain a score for every token in the model's vocabulary.`}</p>
+                    <p>{`To answer that, the model takes the final token's vector and dot products it with the `}<strong>unembedding matrix</strong>{`, to obtain a score for every token in the model's vocabulary.`}</p>
                     <Space />
                     <p>{`This is akin to holding information about an unknown fruit and comparing it against all the fruits that you know and giving them a score.`}</p>
                     <UnembeddingStep />
@@ -879,7 +879,7 @@ export default function GraphTutorial({
             description: (
                 <div>
                     <p>
-                        {"The LLM then adds that token runs this whole process again, repeating until it runs into a special end token"}
+                        {"The LLM then adds that token and runs this whole process again, repeating until it runs into a special end token"}
                         <Token token={"<|endoftext|>"} />
                         {"which signals that the response is complete and to stop generating."}
                     </p>
@@ -889,7 +889,7 @@ export default function GraphTutorial({
             placement: "center"
         },
         {
-            title: "Now we know how an LLM works. Now lets learn about the tools used to better understand the LLM",
+            title: "Now we know how an LLM works. Now lets learn about the tools used to better understand LLMs",
             description: (
                 <div>
                     <p></p>
@@ -903,7 +903,7 @@ export default function GraphTutorial({
                 <div>
                     <p>In the MLP layer, many neurons can fire at the same time, which makes it hard to extract the concrete concept. </p>
                     <Space />
-                    <p>This is where the SAE comes in. A Sparse Autoencoder (SAE) is a tool trained to take in the inputs of the MLP layer and replicate them as its output.</p>
+                    <p>This is where the Sparse Autoencoder (SAE) comes in. SAE is a tool trained to take in the inputs of the MLP layer and replicate them as its output.</p>
                 </div>
             ),
             placement: "center"
@@ -941,12 +941,12 @@ export default function GraphTutorial({
                     <div className="flex w-full justify-center">
                         <img
                             src={CLT.src}
-                            alt="CLT    "
+                            alt="CLT"
                             className="w-[50%]"
                         />
                     </div>
                     <Space />
-                    <p>This brings us back to our goal of finding out how the LLM came to the final output. Now lets take a look at the website.</p>
+                    <p>This brings us back to our goal of finding out how the LLM came to the final output. Now lets take a look at Neuronpedia's circuit tracer.</p>
                 </div>
             ),
             placement: "center"
@@ -1094,7 +1094,6 @@ export default function GraphTutorial({
                             style={{ clipPath: "inset(0 5px 0 5px)" }}
                         />
                     </div>
-                    <p>3 is chosen simply for demonstration purposes, you are allowed to choose any number you like.</p>
                 </div>
             ),
             arrow: true,
@@ -1108,7 +1107,12 @@ export default function GraphTutorial({
             title: "Choose 3 more inputs each",
             description: (
                 <div>
-                    <p>For each of the 3 inputs chosen, add another 3 more inputs for it.</p>
+                    <p>For each of the 3 inputs that you have just selected, add another 3 more inputs for it.</p>
+                    <img
+                        src={RepeatGif.src}
+                        alt="Repeat"
+                        className="w-full rounded-lg"
+                    />
                 </div>
             ),
             arrow: true,
@@ -1119,7 +1123,7 @@ export default function GraphTutorial({
             title: "Repeat this process",
             description: (
                 <div>
-                    <p>Repeat this process 1 more times.</p>
+                    <p>Repeat this process 1 more time.</p>
                 </div>
             ),
             arrow: true,
@@ -1131,7 +1135,10 @@ export default function GraphTutorial({
             description: (
                 <div>
                     <p>By now you should notice there are many nodes with similar labels</p>
-                    <p>For example <strong>"Texas", "Texas legal documents"</strong></p>
+                    <p>For example:</p>
+                    <p className="pl-4"><strong>"Texas", "Texas legal documents"</strong></p>
+                    <p className="pl-4"><strong>"cities", "Cities and state names"</strong></p>
+                    <p className="pl-4"><strong>"government/state", "government buildings"</strong></p>
                     <Space />
                     <p>We can group the related nodes to make the subgraph easier to read</p>
                 </div>
@@ -1303,6 +1310,18 @@ export default function GraphTutorial({
             styles: {
                 root: { transform: 'translateY(-200px)' }
             }
+        },
+        {
+            title: "Tutorial Completed!",
+            description: (
+                <div>
+                    <p>Through this tutorial, you have learnt:</p>
+                    <p>1. The key terminologies of LLMs: tokens, embeddings, attention, MLP layers and how they work together</p>
+                    <p>2. How interpretability tools like SAEs and CLTs help us understand what LLMs are thinking</p>
+                    <p>3. How to use the circuit tracer to trace the reasoning process of an LLM</p>
+                </div>
+            ),
+            placement: "center",
         },
     ];
 

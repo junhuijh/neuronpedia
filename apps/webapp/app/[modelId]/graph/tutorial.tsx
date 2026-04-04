@@ -9,7 +9,7 @@ import CLT from "@/components/tutorial/CLT.png"
 import Tutorial from "@/components/tutorial/Tutorial.png"
 import LinkGraphGif from "@/components/tutorial/LinkGraph.gif"
 import NodeConnectionsGif from "@/components/tutorial/NodeConnections.gif"
-import AutoGenGif from "@/components/tutorial/Autogen.gif"
+import AutoGenGif from "@/components/tutorial/AutoGen1.gif"
 
 
 function Space() {

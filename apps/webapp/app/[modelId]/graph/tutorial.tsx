@@ -642,7 +642,7 @@ export default function GraphTutorial({
     useEffect(() => {
         if (showTutorial) {
             try {
-                const hasToured = localStorage.getItem('circuit-tracer-tour-visited');
+                const hasToured = localStorage.getItem('circuit-tracer-tour-seen');
                 if (!hasToured) {
                     setIsTutorialModalOpen(true);
                 }
@@ -758,7 +758,7 @@ export default function GraphTutorial({
                     <Space />
                     <p>There are 2 main components of a Transformer layer:</p>
                     <p className="mx-1"><strong>1. Attention layer</strong></p>
-                    <p className="mx-1"><strong>2. MLP layer</strong></p>
+                    <p className="mx-1"><strong>2. Multi Layer Perceptron (MLP) layer</strong></p>
                 </div>
             ),
             placement: "center"
@@ -787,7 +787,7 @@ export default function GraphTutorial({
             placement: "center"
         },
         {
-            title: "The MLP layer",
+            title: "The Multi Layer Perceptron (MLP) layer",
             description: (
                 <div>
                     <p>Not much is known about the MLP layer either. </p>
@@ -1171,9 +1171,8 @@ export default function GraphTutorial({
                     <Space />
                     <p>This shows that the model reasoned:</p>
                     <p>1. <Token token="capital" /> in this context represent a city capital, not financial capital</p>
-                    <p> 2. <Token token="state" /> refers to a US state, not the verb "to state".</p>
-                    <p>3. <Token token="Texas" /> is the state containing Dallas</p>
-                    <p>4. <Token token="Austin" /> is the capital of <Token token="Texas" />, and therefore the answer.</p>
+                    <p>2. <Token token="Texas" /> is the state containing Dallas</p>
+                    <p>3. <Token token="Austin" /> is the capital of <Token token="Texas" />, and therefore the answer.</p>
                 </div>
             ),
             arrow: true,

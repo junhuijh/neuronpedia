@@ -139,10 +139,10 @@ async def generate_auto_generate(request: AutoGenerateRequest):
         if len(request.newPinned) > MAX_SUBGRAPH_NODES:
             sorted_nodes = sorted(
                 request.newPinned.values(),
-                key=lambda n: sum(n["votes"].values()),
+                key=lambda n: sum(n.votes.values()),
                 reverse=True
             )
-            keep_ids = {node["node_id"] for node in sorted_nodes[:MAX_SUBGRAPH_NODES]}
+            keep_ids = {node.node_id for node in sorted_nodes[:MAX_SUBGRAPH_NODES]}
             request.newPinned = {k: v for k, v in request.newPinned.items() if k in keep_ids}
             print(f"Capped to {MAX_SUBGRAPH_NODES} nodes")
 

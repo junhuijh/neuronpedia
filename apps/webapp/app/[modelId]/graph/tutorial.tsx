@@ -4,7 +4,7 @@ import { Tour } from "antd";
 import type { TourProps } from "antd";
 import { useEffect, useState } from "react"
 import { useGraphModalContext } from "@/components/provider/graph-modal-provider";
-import UAE from "@/components/tutorial/UAE.png"
+import Austin from "@/components/tutorial/Austin.png"
 import CLT from "@/components/tutorial/CLT.png"
 import Tutorial from "@/components/tutorial/Tutorial.png"
 import LinkGraphGif from "@/components/tutorial/LinkGraph.gif"
@@ -328,9 +328,9 @@ const UnembeddingStep = () => {
 
 const SoftMaxStep = () => {
     const tokens = [
-        { word: 'UAE', pct: 85 },
-        { word: 'Japan', pct: 10 },
-        { word: 'China', pct: 4 },
+        { word: 'Austin', pct: 85 },
+        { word: 'New', pct: 10 },
+        { word: 'California', pct: 4 },
         { word: '...', pct: 1 },
     ]
 
@@ -384,10 +384,10 @@ const SoftMaxStep = () => {
 
 const LLMRepeat = () => {
     const sequences = [
-        ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is"],
-        ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is", "UAE"],
-        ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is", "UAE", "."],
-        ["The", "country", "that", "has", "the", "tallest", "building", "in", "the", "world", "is", "UAE", ".", "<|endoftext|>"],
+        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is"],
+        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Dallas"],
+        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Dallas", "."],
+        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Dallas", ".", "<|endoftext|>"]
     ]
 
     const [seqIndex, setSeqIndex] = useState(0)
@@ -519,12 +519,12 @@ export default function GraphTutorial({
             description: (
                 <div>
                     <p>{`The goal of Circuit Tracer is to create a story of how the LLM came to the final output`}</p>
-                    <p>{`When answering the question: \"What is the country that has the tallest building in the world?\", `}</p>
-                    <p>{`We would first think of the tallest building in the world (Burj Khalifa), then think of where Burj Khalifa is from, UAE. `}</p>
+                    <p>{`When answering the question: \"What is the capital of the state containing Dallas?\", `}</p>
+                    <p>{`We would first think of the state containing Dallas (Texas), then think of the capital of Texas, Austin.`}</p>
                     <div className="w-full flex flex-col items-center">
                         <img
-                            src={UAE.src}
-                            alt="UAE"
+                            src={Austin.src}
+                            alt="Austin"
                             className="w-[50%]"
                         />
                     </div>
@@ -723,18 +723,15 @@ export default function GraphTutorial({
                     <p>The token with the highest probability becomes the next token in the response.</p>
                     <div>
                         <Token token={"The"} />
-                        <Token token={"country"} />
-                        <Token token={"that"} />
-                        <Token token={"has"} />
+                        <Token token={"capital"} />
+                        <Token token={"of"} />
                         <Token token={"the"} />
-                        <Token token={"tallest"} />
-                        <Token token={"building"} />
-                        <Token token={"in"} />
-                        <Token token={"the"} />
-                        <Token token={"world"} />
+                        <Token token={"state"} />
+                        <Token token={"containing"} />
+                        <Token token={"Dallas"} />
                         <Token token={"is"} />
                         <span className="text-slate-400 text-lg">→</span>
-                        <Token token={"UAE"} />
+                        <Token token={"Austin"} />
                     </div>
                 </div>
             ),

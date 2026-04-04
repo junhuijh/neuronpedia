@@ -72,7 +72,7 @@ function SpeedAddModal({
                 ...selectedGraph.nodes
                     .filter(node => {
                         if (node.nodeId && currentPinnedIds.has(node.nodeId)) return false
-                        return getName(node)?.toLowerCase().split(" ").includes(query.value.toLowerCase())
+                        return getName(node)?.toLowerCase().split(/[\s\/,\-]+/).includes(query.value.toLowerCase())
                     })
                     .map(node => node.nodeId)
                     .filter((id): id is string => id !== undefined)

@@ -161,4 +161,4 @@ export const HIGHER_LIMIT_API_TOKENS = process.env.HIGHER_LIMIT_API_TOKENS
   ? process.env.HIGHER_LIMIT_API_TOKENS.split(',').map((t) => t.trim())
   : [];
 
-export const FYP_SERVER = process.env.FYP_SERVER || 'http://localhost:5010';
+export const FYP_SERVER = process.env.NEXT_PUBLIC_FYP_SERVER || 'http://localhost:5010';

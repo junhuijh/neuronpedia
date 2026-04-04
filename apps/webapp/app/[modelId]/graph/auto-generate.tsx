@@ -298,165 +298,170 @@ export default function AutoGenerateButton({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   async function handleAutoGenerateGraph(formValues: AutoGenerateGraphForm) {
-    setAutoGenerating(true)
-    abortControllerRef.current = new AbortController();
-    // Top input nodes scanned per node
-    const inputs_scanned_per_node = formValues.inputs_scanned_per_node;
-    const output_node_id = formValues.output_node_id
-    if (!selectedGraph) return;
-    // New list of nodes
-    const newPinnedIds: string[] = [];
-    const newPinned = new Map<string, GraphNode>();
-    // Create a queue
-    const queue: GraphNode[] = [];
-    // Create a visited set
-    const visited = new Set<string>();
-    // Find most probable output node
-    const outputNode = selectedGraph.nodes
-      .filter(node => node.nodeId === output_node_id)[0];
-    if (!outputNode || !outputNode.node_id) return;
-    // Find seeds
-    const seedsResponse = await fetch(`${FYP_SERVER}/fyp/seeds`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt:selectedGraph.metadata.prompt })
-    })
-    const seedsData = await seedsResponse.json()
-    let seedNodes:CLTGraphNode[] = []
-    if (seedsData.filtered){
-      // Filter for seed nodes
-      const seedsNodesResponse = await fetch(`${FYP_SERVER}/fyp/filter`, {
+    try{
+      setAutoGenerating(true)
+      abortControllerRef.current = new AbortController();
+      // Top input nodes scanned per node
+      const inputs_scanned_per_node = formValues.inputs_scanned_per_node;
+      const output_node_id = formValues.output_node_id
+      if (!selectedGraph) return;
+      // New list of nodes
+      const newPinnedIds: string[] = [];
+      const newPinned = new Map<string, GraphNode>();
+      // Create a queue
+      const queue: GraphNode[] = [];
+      // Create a visited set
+      const visited = new Set<string>();
+      // Find most probable output node
+      const outputNode = selectedGraph.nodes
+        .filter(node => node.nodeId === output_node_id)[0];
+      if (!outputNode || !outputNode.node_id) return;
+      // Find seeds
+      const seedsResponse = await fetch(`${FYP_SERVER}/fyp/seeds`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filters: seedsData })
+        body: JSON.stringify({ prompt:selectedGraph.metadata.prompt })
       })
-      const seedNodesData = await seedsNodesResponse.json()
-      const seedNodesInfo:{layer:string, index:string}[] = seedNodesData.filtered
-      seedNodes = seedNodesInfo.flatMap(seedInfo =>
-        selectedGraph.nodes.filter(node =>
-          node.featureDetailNP?.layer === seedInfo.layer &&
-          node.featureDetailNP?.index === seedInfo.index
+      const seedsData = await seedsResponse.json()
+      let seedNodes:CLTGraphNode[] = []
+      if (seedsData.filtered){
+        // Filter for seed nodes
+        const seedsNodesResponse = await fetch(`${FYP_SERVER}/fyp/filter`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filters: seedsData })
+        })
+        const seedNodesData = await seedsNodesResponse.json()
+        const seedNodesInfo:{layer:string, index:string}[] = seedNodesData.filtered
+        seedNodes = seedNodesInfo.flatMap(seedInfo =>
+          selectedGraph.nodes.filter(node =>
+            node.featureDetailNP?.layer === seedInfo.layer &&
+            node.featureDetailNP?.index === seedInfo.index
+          )
         )
-      )
-    }
-    // Add to queue
-    for (let node of [outputNode, ...seedNodes]) {
-      const convertedNode = ConvertToGraphNode(node)
-      if (!convertedNode) {
-        continue
       }
-      queue.push(convertedNode);
-      newPinnedIds.push(convertedNode.node_id);
-      newPinned.set(convertedNode.node_id, convertedNode)
-      visited.add(convertedNode.node_id);
-    }
-    // While queue is not empty
-    while (queue.length > 0) {
-      // Pop from queue
-      const current = queue.shift()!;
-      // Skip embedding nodes
-      if (current.feature_type === 'embedding') continue;
-      // Find top K input nodes
-      let outputNodes: GraphNode[] = []
-      if (current.feature_type === 'logit') {
-        // if its logit, take features only
-        outputNodes = selectedGraph.links
-          .filter(l => l.target === current.node_id)
-          .sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight))
-          .map(l => selectedGraph.nodes.find(n => n.node_id === l.source))
-          .map(n => n ? ConvertToGraphNode(n) : undefined)
-          .filter((n): n is GraphNode =>
-            n !== undefined &&
-            !visited.has(n.node_id) &&
-            n.feature_type !== 'mlp reconstruction error' &&
-            n.feature_type !== 'embedding' &&
-            (n.description != "" || n.explanations != null)
-          )
-          .slice(0, inputs_scanned_per_node);
-      } else {
-        outputNodes = selectedGraph.links
-          .filter(l => l.target === current.node_id)
-          .sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight))
-          .map(l => selectedGraph.nodes.find(n => n.node_id === l.source))
-          .map(n => n ? ConvertToGraphNode(n) : undefined)
-          .filter((n): n is GraphNode =>
-            n !== undefined &&
-            !visited.has(n.node_id) &&
-            n.feature_type !== 'mlp reconstruction error' &&
-            (n.feature_type === "embedding" || n.feature_type === "logit" || n.description != "" || n.explanations != null)
-          )
-          .slice(0, inputs_scanned_per_node);
+      // Add to queue
+      for (let node of [outputNode, ...seedNodes]) {
+        const convertedNode = ConvertToGraphNode(node)
+        if (!convertedNode) {
+          continue
+        }
+        queue.push(convertedNode);
+        newPinnedIds.push(convertedNode.node_id);
+        newPinned.set(convertedNode.node_id, convertedNode)
+        visited.add(convertedNode.node_id);
       }
-      for (const node of outputNodes) {
-        // set as visited
-        visited.add(node.node_id);
-        // Add to pinned
-        newPinnedIds.push(node.node_id);
-        newPinned.set(node.node_id, node);
-        // Add to queue
-        queue.push(node);
+      // While queue is not empty
+      while (queue.length > 0) {
+        // Pop from queue
+        const current = queue.shift()!;
+        // Skip embedding nodes
+        if (current.feature_type === 'embedding') continue;
+        // Find top K input nodes
+        let outputNodes: GraphNode[] = []
+        if (current.feature_type === 'logit') {
+          // if its logit, take features only
+          outputNodes = selectedGraph.links
+            .filter(l => l.target === current.node_id)
+            .sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight))
+            .map(l => selectedGraph.nodes.find(n => n.node_id === l.source))
+            .map(n => n ? ConvertToGraphNode(n) : undefined)
+            .filter((n): n is GraphNode =>
+              n !== undefined &&
+              !visited.has(n.node_id) &&
+              n.feature_type !== 'mlp reconstruction error' &&
+              n.feature_type !== 'embedding' &&
+              (n.description != "" || n.explanations != null)
+            )
+            .slice(0, inputs_scanned_per_node);
+        } else {
+          outputNodes = selectedGraph.links
+            .filter(l => l.target === current.node_id)
+            .sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight))
+            .map(l => selectedGraph.nodes.find(n => n.node_id === l.source))
+            .map(n => n ? ConvertToGraphNode(n) : undefined)
+            .filter((n): n is GraphNode =>
+              n !== undefined &&
+              !visited.has(n.node_id) &&
+              n.feature_type !== 'mlp reconstruction error' &&
+              (n.feature_type === "embedding" || n.feature_type === "logit" || n.description != "" || n.explanations != null)
+            )
+            .slice(0, inputs_scanned_per_node);
+        }
+        for (const node of outputNodes) {
+          // set as visited
+          visited.add(node.node_id);
+          // Add to pinned
+          newPinnedIds.push(node.node_id);
+          newPinned.set(node.node_id, node);
+          // Add to queue
+          queue.push(node);
+        }
       }
-    }
 
-    // Update in-degree, childIds
-    selectedGraph.links.forEach(l => {
-      if (newPinnedIds.includes(l.source) && newPinnedIds.includes(l.target)) {
-        const source = newPinned.get(l.source);
-        const target = newPinned.get(l.target);
-        // REVERSE!! Source here is the child, target is the parent
-        if (source && target) {
-          if (!target.child_ids.includes(l.source)) {
-            source.inDegree += 1
-            target.child_ids.push(l.source);
-          } else {
-            console.log("Duplicate Found?")
+      // Update in-degree, childIds
+      selectedGraph.links.forEach(l => {
+        if (newPinnedIds.includes(l.source) && newPinnedIds.includes(l.target)) {
+          const source = newPinned.get(l.source);
+          const target = newPinned.get(l.target);
+          // REVERSE!! Source here is the child, target is the parent
+          if (source && target) {
+            if (!target.child_ids.includes(l.source)) {
+              source.inDegree += 1
+              target.child_ids.push(l.source);
+            } else {
+              console.log("Duplicate Found?")
+            }
           }
         }
-      }
-    });
-
-    // Call API
-    const response = await fetch(`${FYP_SERVER}/fyp/auto_generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        newPinned: Object.fromEntries(newPinned),
-        max_votes_per_node: formValues.max_votes_per_node,
-        min_similarity_vote: formValues.min_similarity_vote,
-        min_similarity_group: formValues.min_similarity_group
-      }),
-      signal: abortControllerRef.current.signal
-    });
-    const data = await response.json();
-    const groups = data.groups
-    const group_names = data.group_names
-    const finalPinnedIds = data.final_pinned_ids
-    const finalPinned = data.final_pinned
-    if (finalPinnedIds) {
-      // Update names
-      const clerps: string[][] = [];
-      finalPinned.forEach((node: GraphNode) => {
-        if (node.feature_id && node.feature_type != "logit" && node.feature_type != "embedding") {
-          clerps.push([node.feature_id, node.final_name])
-        }
-      })
-      updateVisStateField('clerps', clerps);
-      // Update Pinned nodes
-      updateVisStateField('pinnedIds', finalPinnedIds);
-    }
-    if (groups) {
-      const supernodes = groups.map((group: string[], i: number) => [group_names[i], ...group]);
-      updateVisStateField('subgraph', {
-        ...visState.subgraph,
-        sticky: visState.subgraph?.sticky ?? false,
-        dagrefy: visState.subgraph?.dagrefy ?? false,
-        activeGrouping: visState.subgraph?.activeGrouping ?? { isActive: false, selectedNodeIds: new Set<string>() },
-        supernodes,
       });
+
+      // Call API
+      const response = await fetch(`${FYP_SERVER}/fyp/auto_generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newPinned: Object.fromEntries(newPinned),
+          max_votes_per_node: formValues.max_votes_per_node,
+          min_similarity_vote: formValues.min_similarity_vote,
+          min_similarity_group: formValues.min_similarity_group
+        }),
+        signal: abortControllerRef.current.signal
+      });
+      const data = await response.json();
+      const groups = data.groups
+      const group_names = data.group_names
+      const finalPinnedIds = data.final_pinned_ids
+      const finalPinned = data.final_pinned
+      if (finalPinnedIds) {
+        // Update names
+        const clerps: string[][] = [];
+        finalPinned.forEach((node: GraphNode) => {
+          if (node.feature_id && node.feature_type != "logit" && node.feature_type != "embedding") {
+            clerps.push([node.feature_id, node.final_name])
+          }
+        })
+        updateVisStateField('clerps', clerps);
+        // Update Pinned nodes
+        updateVisStateField('pinnedIds', finalPinnedIds);
+      }
+      if (groups) {
+        const supernodes = groups.map((group: string[], i: number) => [group_names[i], ...group]);
+        updateVisStateField('subgraph', {
+          ...visState.subgraph,
+          sticky: visState.subgraph?.sticky ?? false,
+          dagrefy: visState.subgraph?.dagrefy ?? false,
+          activeGrouping: visState.subgraph?.activeGrouping ?? { isActive: false, selectedNodeIds: new Set<string>() },
+          supernodes,
+        });
+      }
+      
+      setIsAutoGenerateModalOpen(false)
+      abortControllerRef.current = null
+    }catch(e:any){
+      setAutoGenerating(false)
+      console.log(e)
     }
-    setAutoGenerating(false);
-    setIsAutoGenerateModalOpen(false);
-    abortControllerRef.current = null;
   }
 
   const handleCancel = () => {

@@ -2,6 +2,9 @@ FROM python:3.12.3-slim
 
 WORKDIR /app
 
+ARG OPENROUTER_API
+ENV OPENROUTER_API=$OPENROUTER_API
+
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 

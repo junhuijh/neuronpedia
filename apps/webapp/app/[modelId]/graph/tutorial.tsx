@@ -9,6 +9,8 @@ import CLT from "@/components/tutorial/CLT.png"
 import Tutorial from "@/components/tutorial/Tutorial.png"
 import LinkGraphGif from "@/components/tutorial/LinkGraph.gif"
 import NodeConnectionsGif from "@/components/tutorial/NodeConnections.gif"
+import AutoGenGif from "@/components/tutorial/Autogen.gif"
+
 
 function Space() {
     return (
@@ -1237,52 +1239,15 @@ export default function GraphTutorial({
             description: (
                 <div>
                     <p>This feature attempts to automate the building and labelling of the subgraph.</p>
+                    <p>Takes about 4-5 minutes.</p>
                     <Space />
-                    <p>Starting from an output node, it repeatedly adds the top-k input nodes of the current node into a queue, expanding outward to form a large temporary subgraph.</p>
-                </div>
-            ),
-            arrow: true,
-            target: () => document.querySelector('.auto-generate-button') as HTMLElement,
-            placement: "leftBottom",
-            styles: {
-                root: { transform: 'translateY(-200px)' }
-            }
-        },
-        {
-            title: "Auto Generate",
-            description: (
-                <div>
-                    <p>Each node's finalised label is determined by a vote among its connected nodes.</p>
-                    <p>The embedding of each node's finalised label is then compared against the candidate labels of its child nodes using cosine similarity.</p>
-                    <p>The top-k candidates above a minimum similarity threshold receive a vote.</p>
-                </div>
-            ),
-            arrow: true,
-            target: () => document.querySelector('.auto-generate-button') as HTMLElement,
-            placement: "leftBottom",
-            styles: {
-                root: { transform: 'translateY(-200px)' }
-            }
-        },
-        {
-            title: "Auto Generate",
-            description: (
-                <div>
-                    <p>Nodes that neither received votes nor cast votes are pruned from the subgraph.</p>
-                </div>
-            ),
-            arrow: true,
-            target: () => document.querySelector('.auto-generate-button') as HTMLElement,
-            placement: "leftBottom",
-            styles: {
-                root: { transform: 'translateY(-200px)' }
-            }
-        },
-        {
-            title: "Auto Generate",
-            description: (
-                <div>
-                    <p>Finally, the remaining nodes are grouped using agglomerative clustering on their label embeddings, automatically forming supernodes for semantically related concepts.</p>
+                    <div className="w-full flex flex-col items-center">
+                        <img
+                            src={AutoGenGif.src}
+                            alt="AutoGenGif"
+                            className="w-[70%]"
+                        />
+                    </div>
                 </div>
             ),
             arrow: true,

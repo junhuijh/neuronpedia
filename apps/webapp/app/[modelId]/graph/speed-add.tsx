@@ -143,6 +143,7 @@ function SpeedAddModal({
                                 className="w-full bg-white border-2 border-blue-500 group"
                                 onClick={handleAppend}
                                 tabIndex={-1}
+                                type="button"
                             >
                                 <Plus
                                     className="text-blue-500 group-hover:text-white"

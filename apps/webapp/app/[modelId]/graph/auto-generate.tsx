@@ -289,10 +289,9 @@ export default function AutoGenerateButton({
     output_node_id: outputNodes[0].nodeId || "",
     inputs_scanned_per_node: 3,
     max_votes_per_node: 2,
-    min_similarity_vote: 0.6,
-    min_similarity_group: 0.8
+    min_similarity_vote: 0.65,
+    min_similarity_group: 0.75
   }
-  // Dallas - 0.75
 
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -455,7 +454,7 @@ export default function AutoGenerateButton({
           supernodes,
         });
       }
-      
+      setAutoGenerating(false)
       setIsAutoGenerateModalOpen(false)
       abortControllerRef.current = null
     }catch(e:any){

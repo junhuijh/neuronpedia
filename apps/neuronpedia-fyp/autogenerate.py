@@ -35,7 +35,7 @@ class AutoGenerateResponse(BaseModel):
 async def generate_auto_generate(request: AutoGenerateRequest):
     # Max number of subgraph nodes to prevent crashing
     MAX_SUBGRAPH_NODES = 150
-    SIMPLE_WORDS = ["the","it","he","she", "is", "are", "were", "of"]
+    SIMPLE_WORDS = ["the","it","he","she", "is", "was","are", "were", "of", "in"]
 
     try:
         total = len(request.newPinned.values())
@@ -63,6 +63,7 @@ async def generate_auto_generate(request: AutoGenerateRequest):
                 queue.append(node)
                 continue
             visited.add(node.node_id)
+
             # If not output and embedding node, finalise name
             if node.feature_type != "logit" and node.feature_type!="embedding":
                 if len(node.votes) == 0:
@@ -166,8 +167,8 @@ async def generate_auto_generate(request: AutoGenerateRequest):
                 final_pinned_ids=[n.node_id for n in request.newPinned.values()],
                 final_pinned=list(request.newPinned.values())
             )
-        node_names_list = [n.final_name for n in between_nodes]
-
+        
+        node_names_list = [n.description for n in between_nodes]
         embeddings = state.sentence_model.encode(node_names_list)
 
         # 2 pass clustering
@@ -220,7 +221,7 @@ async def generate_auto_generate(request: AutoGenerateRequest):
                 (request.newPinned[node_id] for node_id in group),
                 key=lambda node: sum(node.votes.values())
             )
-            group_names.append(best_node.final_name)
+            group_names.append(best_node.description)
 
         final_pinned_ids = [node.node_id for node in request.newPinned.values()]
         print(f"Pinned: {len(final_pinned_ids)}")

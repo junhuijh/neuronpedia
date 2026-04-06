@@ -431,16 +431,16 @@ export default function AutoGenerateButton({
       const groups = data.groups
       const group_names = data.group_names
       const finalPinnedIds = data.final_pinned_ids
-      const finalPinned = data.final_pinned
+      // const finalPinned = data.final_pinned
       if (finalPinnedIds) {
         // Update names
-        const clerps: string[][] = [];
-        finalPinned.forEach((node: GraphNode) => {
-          if (node.feature_id && node.feature_type != "logit" && node.feature_type != "embedding") {
-            clerps.push([node.feature_id, node.final_name])
-          }
-        })
-        updateVisStateField('clerps', clerps);
+        // const clerps: string[][] = [];
+        // finalPinned.forEach((node: GraphNode) => {
+        //   if (node.feature_id && node.feature_type != "logit" && node.feature_type != "embedding") {
+        //     clerps.push([node.feature_id, node.final_name])
+        //   }
+        // })
+        // updateVisStateField('clerps', clerps);
         // Update Pinned nodes
         updateVisStateField('pinnedIds', finalPinnedIds);
       }

@@ -169,37 +169,66 @@ async def generate_auto_generate(request: AutoGenerateRequest):
         node_names_list = [n.final_name for n in between_nodes]
 
         embeddings = state.sentence_model.encode(node_names_list)
-        clustering = AgglomerativeClustering(
+
+        # 2 pass clustering
+        # 1st pass strict
+        # 2nd pass relaxed
+        clustering1 = AgglomerativeClustering(
             n_clusters=None,
             distance_threshold=1 - min_similarity_group,
             metric='cosine',
             linkage='average'
         )
-        cluster_ids = clustering.fit_predict(embeddings)
+        cluster_ids1 = clustering1.fit_predict(embeddings)
 
-        groups: list[list[str]] = []
-        group_names: list[str] = []
-        for i, cluster_id in enumerate(cluster_ids):
-            while len(groups) <= cluster_id:
-                groups.append([])
-            groups[cluster_id].append(between_nodes[i].node_id)
-        groups = [g for g in groups if len(g) > 1]
-        
+        pass1_groups = {}
+        for node_idx, cluster_id in enumerate(cluster_ids1):
+            if cluster_id not in pass1_groups:
+                pass1_groups[cluster_id] = []
+            pass1_groups[cluster_id].append(node_idx)
+
+        group_keys = list(pass1_groups.keys())
+        group_embeddings = np.array([
+            embeddings[pass1_groups[cluster_id]].mean(axis=0)
+            for cluster_id in group_keys
+        ])
+
+        relaxed_similarity = max(min_similarity_group - 0.2, 0.1)
+        clustering2 = AgglomerativeClustering(
+            n_clusters=None,
+            distance_threshold=1 - relaxed_similarity,
+            metric='cosine',
+            linkage='average'
+        )
+        cluster_ids2 = clustering2.fit_predict(group_embeddings)
+
+        final_groups = {}
+        for group_idx, meta_cluster_id in enumerate(cluster_ids2):
+            if meta_cluster_id not in final_groups:
+                final_groups[meta_cluster_id] = []
+            final_groups[meta_cluster_id].extend(pass1_groups[group_keys[group_idx]])
+
+        groups = [
+            [between_nodes[node_idx].node_id for node_idx in node_indices]
+            for node_indices in final_groups.values()
+            if len(node_indices) > 1
+        ]
+
         group_names = []
         for group in groups:
             best_node = max(
                 (request.newPinned[node_id] for node_id in group),
-                key=lambda n: sum(n.votes.values())
+                key=lambda node: sum(node.votes.values())
             )
             group_names.append(best_node.final_name)
 
-        final_pinned_ids = [n.node_id for n in request.newPinned.values()]
+        final_pinned_ids = [node.node_id for node in request.newPinned.values()]
         print(f"Pinned: {len(final_pinned_ids)}")
         print(f"Groups: {len(groups)}")
         return AutoGenerateResponse(
             groups=groups,
-            group_names = group_names,
-            final_pinned_ids = final_pinned_ids, 
+            group_names=group_names,
+            final_pinned_ids=final_pinned_ids,
             final_pinned=list(request.newPinned.values())
         )
     

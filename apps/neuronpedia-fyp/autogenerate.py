@@ -136,18 +136,22 @@ async def generate_auto_generate(request: AutoGenerateRequest):
         for node_id in to_prune:
             request.newPinned.pop(node_id)
 
-        if len(request.newPinned) > MAX_SUBGRAPH_NODES:
-            sorted_nodes = sorted(
-                request.newPinned.values(),
-                key=lambda n: sum(n.votes.values()),
+        outer_nodes = {node_id: node for node_id, node in request.newPinned.items() if node.feature_type in ("logit", "embedding")}
+        between_nodes = {node_id: node for node_id, node in request.newPinned.items() if node.feature_type not in ("logit", "embedding")}
+
+        if len(between_nodes) > MAX_SUBGRAPH_NODES:
+            sorted_between = sorted(
+                between_nodes.values(),
+                key=lambda node: sum(node.votes.values()),
                 reverse=True
             )
-            keep_ids = {node.node_id for node in sorted_nodes[:MAX_SUBGRAPH_NODES]}
-            request.newPinned = {k: v for k, v in request.newPinned.items() if k in keep_ids}
-            print(f"Capped to {MAX_SUBGRAPH_NODES} nodes")
+            keep_ids = {node.node_id for node in sorted_between[:MAX_SUBGRAPH_NODES]}
+            between_nodes = {node_id: node for node_id, node in between_nodes.items() if node_id in keep_ids}
+            print(f"Capped to {MAX_SUBGRAPH_NODES + len(outer_nodes)} nodes")
+            request.newPinned = {**outer_nodes, **between_nodes}
 
         # Now group them 
-        between_nodes = [n for n in request.newPinned.values() if n.feature_type not in ("embedding", "logit")]
+        between_nodes = [between_nodes.values()]
         if len(between_nodes)<=2:
             return AutoGenerateResponse(
                 groups=[],

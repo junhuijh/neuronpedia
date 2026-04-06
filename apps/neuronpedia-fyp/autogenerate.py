@@ -35,6 +35,8 @@ class AutoGenerateResponse(BaseModel):
 async def generate_auto_generate(request: AutoGenerateRequest):
     # Max number of subgraph nodes to prevent crashing
     MAX_SUBGRAPH_NODES = 150
+    SIMPLE_WORDS = ["the","it","he","she", "is", "are", "were", "of"]
+
     try:
         total = len(request.newPinned.values())
         print(f"Total: {total}")
@@ -42,6 +44,11 @@ async def generate_auto_generate(request: AutoGenerateRequest):
         min_similarity_vote = request.min_similarity_vote
         min_similarity_group = request.min_similarity_group
         to_prune = []
+
+        explanation_embeddings_cache: dict[str, np.ndarray] = {}
+        for node in request.newPinned.values():
+            if node.explanations:
+                explanation_embeddings_cache[node.node_id] = state.sentence_model.encode(node.explanations)
         
         visited = set()
         queue = [n for n in request.newPinned.values() if n.feature_type == "logit"]
@@ -72,13 +79,12 @@ async def generate_auto_generate(request: AutoGenerateRequest):
                     node.final_name = max(node.votes, key=node.votes.get)
 
             # If final_name isnt really useful, prune it off
-            simple_words = ["the","it","he","she", "is", "are", "were", "of"]
             say_match = re.match(r'Say "(.+)"', node.final_name)
             if say_match:
                 final_name = say_match.group(1).strip() or node.final_name
             else:
                 final_name = node.final_name
-            if final_name.lower() in simple_words:
+            if final_name.lower() in SIMPLE_WORDS:
                 to_prune.append(node.node_id)
                 # Reduce children's inDegree as well
                 for child_node_id in node.child_ids:
@@ -107,13 +113,14 @@ async def generate_auto_generate(request: AutoGenerateRequest):
                     print("Node has no final name!")
                     continue
                 if child_node.explanations:
-                    candidates_embeddings = state.sentence_model.encode(child_node.explanations)
-                    scores = cosine_similarity(voter_embedding, candidates_embeddings).mean(axis=1)
-                    top_k_indices = np.argsort(scores)[::-1][:max_votes_per_node]
-                    votes = [child_node.explanations[i] for i in top_k_indices if scores[i] >= min_similarity_vote]
-                    for vote in votes:
-                        child_node.votes[vote] += 1
-                    node.votes_casted += len(votes)
+                    candidates_embeddings = explanation_embeddings_cache.get(child_node.node_id)
+                    if candidates_embeddings is not None:
+                        scores = cosine_similarity(voter_embedding, candidates_embeddings).mean(axis=1)
+                        top_k_indices = np.argsort(scores)[::-1][:max_votes_per_node]
+                        votes = [child_node.explanations[i] for i in top_k_indices if scores[i] >= min_similarity_vote]
+                        for vote in votes:
+                            child_node.votes[vote] += 1
+                        node.votes_casted += len(votes)
                 child_node.inDegree -= 1
 
                 if child_node.inDegree == 0 and child_node.node_id not in visited:
@@ -127,8 +134,8 @@ async def generate_auto_generate(request: AutoGenerateRequest):
             node.node_id for node in request.newPinned.values()
             if node.feature_type not in ("embedding", "logit") and (
                 (sum(node.votes.values()) == 0 and node.votes_casted == 0)
-                or (node.final_name and node.final_name.lower() in simple_words)
-                or (node.description and node.description.lower() in simple_words)
+                or (node.final_name and node.final_name.lower() in SIMPLE_WORDS)
+                or (node.description and node.description.lower() in SIMPLE_WORDS)
             )
         ]
         to_prune = list(set(to_prune))
@@ -136,10 +143,10 @@ async def generate_auto_generate(request: AutoGenerateRequest):
         for node_id in to_prune:
             request.newPinned.pop(node_id)
 
-        outer_nodes = {node_id: node for node_id, node in request.newPinned.items() if node.feature_type in ("logit", "embedding")}
         between_nodes = {node_id: node for node_id, node in request.newPinned.items() if node.feature_type not in ("logit", "embedding")}
 
         if len(between_nodes) > MAX_SUBGRAPH_NODES:
+            outer_nodes = {node_id: node for node_id, node in request.newPinned.items() if node.feature_type in ("logit", "embedding")}
             sorted_between = sorted(
                 between_nodes.values(),
                 key=lambda node: sum(node.votes.values()),
@@ -151,7 +158,7 @@ async def generate_auto_generate(request: AutoGenerateRequest):
             request.newPinned = {**outer_nodes, **between_nodes}
 
         # Now group them 
-        between_nodes = [between_nodes.values()]
+        between_nodes = list(between_nodes.values())
         if len(between_nodes)<=2:
             return AutoGenerateResponse(
                 groups=[],

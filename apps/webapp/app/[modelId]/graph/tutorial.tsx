@@ -528,9 +528,9 @@ const SoftMaxStep = () => {
 const LLMRepeat = () => {
     const sequences = [
         ["The", "capital", "of", "the", "state", "containing", "Dallas", "is"],
-        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Dallas"],
-        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Dallas", "."],
-        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Dallas", ".", "<|endoftext|>"]
+        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Austin"],
+        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Austin", "."],
+        ["The", "capital", "of", "the", "state", "containing", "Dallas", "is", "Austin", ".", "<|endoftext|>"]
     ]
 
     const [seqIndex, setSeqIndex] = useState(0)
